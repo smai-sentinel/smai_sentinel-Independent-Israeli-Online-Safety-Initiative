@@ -315,6 +315,16 @@ function suicideRisk(prompt){
   const informational=/(כתבה|מאמר|מחקר|שיעורי בית|מה זה|איך לעזור ל|חבר שלי|מישהו אחר|חדשות)/.test(text)&&!/(אני רוצה|אני עומד|אני הולך|לעצמי|kill myself|end my life)/.test(text);
   return personal&&harm&&!informational;
 }
+function incidentSupport(prompt){
+  const text=String(prompt||'').toLowerCase().replace(/\s+/g,' ');
+  const immediate=/(עכשיו|כרגע|בדרך אלי|נועל אותי|עם סכין|עם אקדח|מאיים להרוג|סכנה מיידית|לא בטוח בבית)/.test(text);
+  if(/(אבא|אמא|אח|אחות|בן משפחה|בבית|משפחה).{0,45}(מרביץ|מכה|מתעלל|פוגע|מאיים|נועל|נוגע בי|אלימות)|אלימות במשפחה|התעללות במשפחה/.test(text))return {type:'family_abuse',label:'אלימות או התעללות במשפחה',department:'child',urgent:immediate,resources:immediate?['100','118']:['118']};
+  if(/(צוות|נציג|מנהל|מודרטור|אדמין).{0,45}(מנצל|מאיים|סוחט|מטריד|פוגע|דורש|משתמש בדרגה)|ניצול (כוח|סמכות|דרגה)/.test(text))return {type:'staff_abuse',label:'תלונה על ניצול סמכות בצוות',department:'harassment',urgent:immediate,resources:immediate?['100']:[]};
+  if(/סחיט|תמונה אינטימ|עירום|גרומינג|נוגע בי|פגיעה מינית/.test(text))return {type:'sexual_harm',label:'סחיטה או פגיעה מינית',department:'sextortion',urgent:immediate,resources:immediate?['100','105']:['105']};
+  if(/מאיים|יהרוג|ירצח|יודע איפה אני גר|עוקב אחרי|סטוקינג/.test(text))return {type:'threat',label:'איומים או מעקב מסוכן',department:'harassment',urgent:immediate,resources:immediate?['100']:[]};
+  if(/פרצ|נפרץ|פישינג|גנב.*חשבון|התחז/.test(text))return {type:'account',label:'פריצה או התחזות',department:'account',urgent:false,resources:[]};
+  return null;
+}
 async function createAiSafetyAlert(db,user,prompt){
   if(!user)return null;
   const bucket=Math.floor(Date.now()/3600000),id=`ai-safety-${String(user.id).replace(/[^A-Za-z0-9_-]/g,'').slice(0,48)}-${bucket}`;
@@ -457,12 +467,12 @@ export async function api(req,env,ctx={waitUntil(){}}){
       if(u)requireThat(!banned(u));const actor=u?.id||req.headers.get('CF-Connecting-IP')||'anonymous';await limit(env,'ai:'+actor,12,3600);await limit(env,'ai:site',200,86400);
       if(body.requireModel)requireThat(env.GEMINI_API_KEY||env.AI,503,'שירות ה-AI עדיין לא מחובר.');
       const prompt=String(body.prompt||'').trim();requireThat(prompt.length>0&&prompt.length<=12000,400,'נא להזין הודעה באורך מתאים');
-      const safetyRisk=suicideRisk(prompt);let safetyTicket=null;
+      const safetyRisk=suicideRisk(prompt),incident=incidentSupport(prompt);let safetyTicket=null;
       if(safetyRisk&&u)safetyTicket=await createAiSafetyAlert(db,u,prompt);
-      const safetyContext=safetyRisk?[{role:'model',text:`הנחיית בטיחות מערכת: זוהתה סכנה אישית אפשרית. ${safetyTicket?'נפתחה התראת צוות ויש ליידע את המשתמש בכך.':'המשתמש אינו מחובר ולכן לא נפתחה התראת צוות.'} יש לתת תמיכה מיידית והפניה ל-100 או ער״ן 1201, בלי לאשר פגיעה עצמית.`}]:[];
+      const safetyContext=[...(safetyRisk?[{role:'model',text:`הנחיית בטיחות מערכת: זוהתה סכנה אישית אפשרית. ${safetyTicket?'נפתחה התראת צוות ויש ליידע את המשתמש בכך.':'המשתמש אינו מחובר ולכן לא נפתחה התראת צוות.'} יש לתת תמיכה מיידית והפניה ל-100 או ער״ן 1201, בלי לאשר פגיעה עצמית.`}]:[]),...(incident?[{role:'model',text:`הנחיית ניתוב מערכת: זוהה מקרה מסוג ${incident.label}. הגיבו באמפתיה, אל תאשימו את הפונה, הציעו מעבר למקום בטוח ותיעוד רק אם בטוח לעשות זאת. ${incident.urgent?'יש להדגיש פנייה מיידית לשירותי חירום.':''} הממשק יציג אפשרות לפתיחת דיווח מסודר.`}]:[])];
       const result=await generate(env,prompt,[...(Array.isArray(body.history)?body.history:[]),...safetyContext]);
       if(body.requireModel)requireThat(['gemini','workers-ai'].includes(result.mode),503,'ספק ה-AI לא קיבל את הבקשה. יש לבדוק את המפתח, המודל והמכסה בשרת.');
-      return json({...result,safetyRisk,safetyEscalated:!!safetyTicket,safetyTicketId:safetyTicket?.id||null,crisis:{emergency:'100',support:'1201'}});
+      return json({...result,safetyRisk,safetyEscalated:!!safetyTicket,safetyTicketId:safetyTicket?.id||null,incident,reportSuggestion:incident?{label:incident.label,href:`/report?source=ai&type=${encodeURIComponent(incident.type)}&dept=${encodeURIComponent(incident.department)}`} : null,crisis:{emergency:'100',support:'1201',welfare:'118',childOnline:'105'}});
     }
     if(path==='/api/public-config'&&req.method==='GET'){
       const config=await db.get('config','site')||{};
