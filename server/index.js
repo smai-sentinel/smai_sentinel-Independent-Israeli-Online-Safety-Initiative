@@ -373,7 +373,7 @@ function localTicketTriage(ticket){
   }[dept];
   return {dept,critical,priority,spam,question};
 }
-async function generate(env,prompt,history=[]){
+async function generate(env,prompt,history=[],options={}){
   if(env.AI){
     await limit(env,'ai:inference-budget',100,86400);
     const context='מידע על האתר: SMAI Sentinel היא יוזמה ישראלית עצמאית לבטיחות ברשת, לא גוף ממשלתי. /report פתיחת דיווח; /my הפניות שלי; /track מעקב פנייה; /community קהילה; /dm הודעות פרטיות; /friends חברים; /account הגדרות חשבון; /articles מדריכים; /join בקשת הצטרפות לצוות. הפניות מטופלות בצאט עם צוות. אין לך גישה לחשבון או לתוכן פרטי מעבר למה שנכתב בשיחה. ענה בשפת המשתמש, בעברית כשכותבים בעברית. אל תמציא מיקומי כפתורים או סטטוס טיפול.';
@@ -388,13 +388,16 @@ async function generate(env,prompt,history=[]){
   const contents=history.slice(-8).filter(m=>['user','model'].includes(m.role)&&typeof m.text==='string').map(m=>({role:m.role,parts:[{text:m.text.slice(0,3000)}]}));
   contents.push({role:'user',parts:[{text:prompt.slice(0,16000)}]});
   let response;
-  try{response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':env.GEMINI_API_KEY},body:JSON.stringify({systemInstruction:{parts:[{text:AI_SYSTEM}]},contents,generationConfig:{maxOutputTokens:1500,temperature:0.35}}),signal:AbortSignal.timeout(25000)});}catch{throw new HttpError(504,'העוזר לא השיב בזמן. נסו שוב; הפנייה לא נמחקה.');}
+  const payload={systemInstruction:{parts:[{text:AI_SYSTEM}]},contents,generationConfig:{maxOutputTokens:1500,temperature:0.35}};
+  if(options.webSearch===true)payload.tools=[{google_search:{}}];
+  try{response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':env.GEMINI_API_KEY},body:JSON.stringify(payload),signal:AbortSignal.timeout(25000)});}catch{throw new HttpError(504,'העוזר לא השיב בזמן. נסו שוב; הפנייה לא נמחקה.');}
   if(!response.ok){
     if([400,401,403,404,429].includes(response.status))return {text:basicGuidance(prompt),mode:'basic',degraded:true};
     throw new HttpError(502,'שירות ה-AI אינו זמין כרגע. נסו שוב מאוחר יותר.');
   }
-  const data=await response.json();const text=data.candidates?.[0]?.content?.parts?.filter(p=>!p.thought).map(p=>p.text||'').join('').trim();
-  requireThat(text,502,'לא התקבלה תשובה מהעוזר. ניתן לפנות לצוות אנושי.');return {text,mode:'gemini'};
+  const data=await response.json(),candidate=data.candidates?.[0];const text=candidate?.content?.parts?.filter(p=>!p.thought).map(p=>p.text||'').join('').trim();
+  const sources=[...new Map((candidate?.groundingMetadata?.groundingChunks||[]).map(chunk=>chunk?.web).filter(web=>web?.uri).map(web=>[web.uri,{url:web.uri,title:web.title||web.uri}])).values()].slice(0,6);
+  requireThat(text,502,'לא התקבלה תשובה מהעוזר. ניתן לפנות לצוות אנושי.');return {text,mode:'gemini',sources,webSearch:options.webSearch===true};
 }
 export async function api(req,env,ctx={waitUntil(){}}){
   try{
@@ -470,7 +473,7 @@ export async function api(req,env,ctx={waitUntil(){}}){
       const safetyRisk=suicideRisk(prompt),incident=incidentSupport(prompt);let safetyTicket=null;
       if(safetyRisk&&u)safetyTicket=await createAiSafetyAlert(db,u,prompt);
       const safetyContext=[...(safetyRisk?[{role:'model',text:`הנחיית בטיחות מערכת: זוהתה סכנה אישית אפשרית. ${safetyTicket?'נפתחה התראת צוות ויש ליידע את המשתמש בכך.':'המשתמש אינו מחובר ולכן לא נפתחה התראת צוות.'} יש לתת תמיכה מיידית והפניה ל-100 או ער״ן 1201, בלי לאשר פגיעה עצמית.`}]:[]),...(incident?[{role:'model',text:`הנחיית ניתוב מערכת: זוהה מקרה מסוג ${incident.label}. הגיבו באמפתיה, אל תאשימו את הפונה, הציעו מעבר למקום בטוח ותיעוד רק אם בטוח לעשות זאת. ${incident.urgent?'יש להדגיש פנייה מיידית לשירותי חירום.':''} הממשק יציג אפשרות לפתיחת דיווח מסודר.`}]:[])];
-      const result=await generate(env,prompt,[...(Array.isArray(body.history)?body.history:[]),...safetyContext]);
+      const result=await generate(env,prompt,[...(Array.isArray(body.history)?body.history:[]),...safetyContext],{webSearch:body.webSearch===true});
       if(body.requireModel)requireThat(['gemini','workers-ai'].includes(result.mode),503,'ספק ה-AI לא קיבל את הבקשה. יש לבדוק את המפתח, המודל והמכסה בשרת.');
       return json({...result,safetyRisk,safetyEscalated:!!safetyTicket,safetyTicketId:safetyTicket?.id||null,incident,reportSuggestion:incident?{label:incident.label,href:`/report?source=ai&type=${encodeURIComponent(incident.type)}&dept=${encodeURIComponent(incident.department)}`} : null,crisis:{emergency:'100',support:'1201',welfare:'118',childOnline:'105'}});
     }

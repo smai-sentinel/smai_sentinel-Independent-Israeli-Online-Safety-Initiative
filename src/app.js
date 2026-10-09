@@ -1205,6 +1205,7 @@ const SEED_MSGS = [
 const NAV = [
   { p:'/',          l:'ראשי',        ico:'home' },
   { p:'/report',    l:'פתיחת דיווח', ico:'shield-alert' },
+  { p:'/ai',        l:'SMAI AI',      ico:'sparkle' },
   { p:'/community', l:'קהילה',       ico:'message' },
   { p:'/dm',        l:'הודעות פרטיות', ico:'send' },
   { p:'/friends',   l:'חברים',       ico:'users' },
@@ -1223,7 +1224,7 @@ const NAV = [
   { p:'/improve',   l:'באגים והצעות', ico:'sparkle' },
   { p:'/join',      l:'הצטרפות לצוות', ico:'users' }
 ];
-const NAV_EN={'/':'Home','/report':'New report','/my':'My cases','/track':'Track case','/articles':'Guides & articles','/press':'Facts','/dm':'Direct messages','/friends':'Friends','/community':'Community','/team-praise':'Kind words','/join':'Join the team','/partners':'Partners & resources','/improve':'Bugs & suggestions','/business':'Business inquiries'};
+const NAV_EN={'/':'Home','/report':'New report','/ai':'SMAI AI','/my':'My cases','/track':'Track case','/articles':'Guides & articles','/press':'Facts','/dm':'Direct messages','/friends':'Friends','/community':'Community','/team-praise':'Kind words','/join':'Join the team','/partners':'Partners & resources','/improve':'Bugs & suggestions','/business':'Business inquiries'};
 const currentLang=()=>localStorage.getItem('smai_lang')==='en'?'en':'he';
 function renderNav(){
   const cur = location.pathname.split('/')[1] || '';
@@ -1942,6 +1943,7 @@ function runCleanup(){ CLEANUP.forEach(f=>{ try{ f(); }catch(e){} }); CLEANUP = 
 
 /* ===================== דף הבית ===================== */
 route('/', async app => renderHome(app, {ic,esc,Auth,DEPTS}));
+route('/ai',async app=>{const {renderAiHub}=await import('./ai-hub.js');return renderAiHub(app,{request});});
 route('/games',async(app,id)=>{const {renderGames}=await import('./games.js');return renderGames(app,{Store:remoteStore,user:Auth.user,esc,onCleanup},id);});
 route('/law-enforcement',async app=>{
   if(!Auth.user)return app.innerHTML=requireLogin();
