@@ -1943,7 +1943,7 @@ function runCleanup(){ CLEANUP.forEach(f=>{ try{ f(); }catch(e){} }); CLEANUP = 
 
 /* ===================== דף הבית ===================== */
 route('/', async app => renderHome(app, {ic,esc,Auth,DEPTS}));
-route('/ai',async app=>{const {renderAiHub}=await import('./ai-hub.js');return renderAiHub(app,{request});});
+route('/ai',async app=>{const {renderAiHub}=await import('./ai-hub.js');return renderAiHub(app,{request,user:Auth.user});});
 route('/games',async(app,id)=>{const {renderGames}=await import('./games.js');return renderGames(app,{Store:remoteStore,user:Auth.user,esc,onCleanup},id);});
 route('/law-enforcement',async app=>{
   if(!Auth.user)return app.innerHTML=requireLogin();
