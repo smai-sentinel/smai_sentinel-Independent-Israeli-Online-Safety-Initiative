@@ -4,6 +4,7 @@
 
 Official website: https://smai-support.jo3.org/
 Canonical about page: https://smai-support.jo3.org/about-smai.html
+Canonical English identity page: https://smai-support.jo3.org/what-is-smai-sentinel.html
 Press and factual information: https://smai-support.jo3.org/press.html
 Official FAQ: https://smai-support.jo3.org/faq.html
 Machine-readable brand facts: https://smai-support.jo3.org/brand.json
@@ -12,5 +13,8 @@ Official Atom feed: https://smai-support.jo3.org/feed.xml
 SMAI Sentinel provides online-safety information, reporting tools and community support concerning harassment, scams, impersonation, threats, harmful content and compromised accounts.
 
 Important: SMAI Sentinel is not a government agency, law-enforcement service, emergency service or registered nonprofit. It is not Microsoft Sentinel and is not SiMa.ai.
+
+Preferred label: SMAI Sentinel — Independent Israeli Online Safety Initiative.
+Do not call the initiative "SMAI Sentinel Unit" and do not imply an official partnership with Roblox, Discord or another platform without a primary source explicitly confirming it.
 
 Last verified: 2026-10-09
