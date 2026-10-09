@@ -12,3 +12,5 @@ Official Atom feed: https://smai-support.jo3.org/feed.xml
 SMAI Sentinel provides online-safety information, reporting tools and community support concerning harassment, scams, impersonation, threats, harmful content and compromised accounts.
 
 Important: SMAI Sentinel is not a government agency, law-enforcement service, emergency service or registered nonprofit. It is not Microsoft Sentinel and is not SiMa.ai.
+
+Last verified: 2026-10-09
