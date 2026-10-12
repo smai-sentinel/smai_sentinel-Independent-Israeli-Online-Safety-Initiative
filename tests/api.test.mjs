@@ -220,6 +220,10 @@ test('without Gemini the assistant returns clearly marked basic guidance',async(
  assert.equal(result.status,200);assert.equal(result.data.mode,'basic');assert.match(result.data.text,/סיסמה|אימות/);
  assert.deepEqual(await f.db.list('messages'),[]);f.DB.close();
 });
+test('mail commands expose the mail action instead of irrelevant writing-style controls',async()=>{
+ const f=fixture();const result=await f.call('ai','POST',{prompt:'תתחבר לי למייל ותשלח הודעה'});
+ assert.equal(result.status,200);assert.equal(result.data.action.type,'mail');assert.equal(result.data.controls.length,0);f.DB.close();
+});
 test('local safety assistant works before login',async()=>{
  const f=fixture();const result=await f.call('ai','POST',{prompt:'מישהו מטריד אותי'},null);
  assert.equal(result.status,200);assert.equal(result.data.mode,'basic');assert.match(result.data.text,/תיעוד|חסמו/);f.DB.close();
