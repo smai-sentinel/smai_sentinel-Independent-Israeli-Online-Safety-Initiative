@@ -5313,11 +5313,15 @@ function initSfx(){
 }
 function initBurger(){
   const b = $('#burger'), nav = $('#nav');
-  const backdrop=document.createElement('button');backdrop.type='button';backdrop.className='mobile-nav-backdrop';backdrop.setAttribute('aria-label','סגירת התפריט');document.body.appendChild(backdrop);
+  if(!b||!nav)return;
+  let backdrop=document.querySelector('.mobile-nav-backdrop');
+  if(!backdrop){backdrop=document.createElement('button');backdrop.type='button';backdrop.className='mobile-nav-backdrop';backdrop.setAttribute('aria-label','סגירת התפריט');document.body.appendChild(backdrop);}
+  if(!nav.id)nav.id='nav';b.setAttribute('aria-controls',nav.id);
   const desktop=()=>matchMedia('(min-width:761px)').matches;
   const paint=()=>{
     if(desktop()){
       const collapsed=localStorage.getItem('smai_sidebar_collapsed')==='1';
+      nav.setAttribute('aria-hidden','false');
       document.body.classList.toggle('sidebar-collapsed',collapsed);
       b.classList.toggle('on',!collapsed);
       b.setAttribute('aria-expanded',String(!collapsed));
@@ -5325,11 +5329,12 @@ function initBurger(){
     }else{
       document.body.classList.remove('sidebar-collapsed');
       document.body.classList.toggle('mobile-nav-open',nav.classList.contains('open'));
+      nav.setAttribute('aria-hidden',String(!nav.classList.contains('open')));
       b.setAttribute('aria-expanded',String(nav.classList.contains('open')));
       b.setAttribute('aria-label',nav.classList.contains('open')?'סגירת התפריט':'פתיחת התפריט');
     }
   };
-  const closeMobileNav=()=>{nav.classList.remove('open');document.body.classList.remove('mobile-nav-open');paint();};
+  const closeMobileNav=()=>{nav.classList.remove('open');document.body.classList.remove('mobile-nav-open');paint();b.focus({preventScroll:true});};
   backdrop.onclick=closeMobileNav;
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!desktop())closeMobileNav();});
   b.onclick=()=>{

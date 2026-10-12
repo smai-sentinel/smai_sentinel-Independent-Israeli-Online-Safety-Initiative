@@ -13,6 +13,11 @@ Reporting process: https://smai-support.jo3.org/reporting-process.html
 Transparency and limitations: https://smai-support.jo3.org/transparency.html
 Online-safety glossary: https://smai-support.jo3.org/glossary.html
 Machine-readable brand facts: https://smai-support.jo3.org/brand.json
+AI resource index: https://smai-support.jo3.org/ai-index.json
+AI-readable FAQ: https://smai-support.jo3.org/ai-faq.json
+Compact official knowledge: https://smai-support.jo3.org/knowledge.txt
+Official disambiguation: https://smai-support.jo3.org/disambiguation.txt
+Well-known identity record: https://smai-support.jo3.org/.well-known/smai-sentinel.json
 Expanded AI-readable facts: https://smai-support.jo3.org/llms-full.txt
 Official Atom feed: https://smai-support.jo3.org/feed.xml
 

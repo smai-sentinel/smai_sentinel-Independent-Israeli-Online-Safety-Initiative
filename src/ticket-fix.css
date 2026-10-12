@@ -181,10 +181,10 @@
 .mobile-nav-tools{display:none}
 @media (max-width: 760px) {
   .top-utility { display: none; }
-  body.mobile-nav-open{overflow:hidden!important;touch-action:none}
-  .mobile-nav-backdrop{display:block;position:fixed;z-index:49;inset:0;border:0;background:#02090cb8;opacity:0;visibility:hidden;pointer-events:none;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;transition:opacity .2s ease,visibility .2s}
+  body.mobile-nav-open{overflow:hidden!important}
+  .mobile-nav-backdrop{display:block;position:fixed;z-index:2147482000;inset:0;border:0;background:#02090cb8;opacity:0;visibility:hidden;pointer-events:none;touch-action:manipulation;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;transition:opacity .2s ease,visibility .2s}
   body.mobile-nav-open .mobile-nav-backdrop{opacity:1;visibility:visible;pointer-events:auto}
-  html .mainnav{display:flex!important;position:fixed!important;z-index:10040!important;inset:0 0 0 auto!important;width:min(88vw,370px)!important;height:100dvh!important;max-height:none!important;margin:0!important;padding:max(82px,calc(env(safe-area-inset-top) + 72px)) 12px max(22px,env(safe-area-inset-bottom))!important;gap:3px!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 96%,#0d8cff 4%),var(--surface))!important;border:0!important;border-left:1px solid var(--line)!important;border-radius:0!important;box-shadow:-24px 0 70px #0009!important;transform:translateX(105%)!important;visibility:hidden;pointer-events:none;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility .28s!important;-webkit-overflow-scrolling:touch}
+  html .mainnav{display:flex!important;position:fixed!important;z-index:2147483000!important;inset:0 0 0 auto!important;width:min(88vw,370px)!important;height:100dvh!important;max-height:none!important;margin:0!important;padding:max(82px,calc(env(safe-area-inset-top) + 72px)) 12px max(22px,env(safe-area-inset-bottom))!important;gap:3px!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;touch-action:pan-y;background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 96%,#0d8cff 4%),var(--surface))!important;border:0!important;border-left:1px solid var(--line)!important;border-radius:0!important;box-shadow:-24px 0 70px #0009!important;transform:translate3d(105%,0,0)!important;visibility:hidden;pointer-events:none;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility .28s!important;-webkit-overflow-scrolling:touch;will-change:transform;isolation:isolate}
   html .mainnav.open,body.mobile-nav-open html .mainnav,body.mobile-nav-open .mainnav{transform:none!important;translate:none!important;visibility:visible!important;pointer-events:auto!important;animation:mobileDrawerIn .26s cubic-bezier(.2,.82,.2,1) both!important}
   html .mainnav::before{content:'מרכז הפעולות';position:absolute;top:max(24px,env(safe-area-inset-top));right:20px;padding:0!important;color:var(--ink)!important;font-size:17px!important;font-weight:900;letter-spacing:0!important}
   html .mainnav::after{display:none!important}
@@ -195,7 +195,7 @@
   html .mainnav .nav-label{display:block!important;flex:1!important;text-align:right;white-space:normal!important;line-height:1.25}
   html .mainnav .nav-arrow{display:grid!important;opacity:.45!important;transform:rotate(180deg)!important}
   html .mainnav .nav-glider{inset-inline:7px!important}
-  #burger{display:grid!important;position:fixed!important;z-index:10045!important;top:max(10px,env(safe-area-inset-top))!important;right:10px!important;left:auto!important;width:44px!important;height:44px!important;border:1px solid var(--line2)!important;border-radius:14px!important;background:color-mix(in srgb,var(--surface) 92%,transparent)!important;box-shadow:0 7px 22px #0004!important;backdrop-filter:blur(16px)}
+  #burger{display:grid!important;position:fixed!important;z-index:2147483640!important;top:max(10px,env(safe-area-inset-top))!important;right:10px!important;left:auto!important;width:44px!important;height:44px!important;border:1px solid var(--line2)!important;border-radius:14px!important;background:var(--surface)!important;box-shadow:0 7px 22px #0004!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;touch-action:manipulation}
   body.mobile-nav-open #burger{color:#fff!important;border-color:#5fdcff66!important;background:#0d7de0dd!important;transform:rotate(90deg)}
   .side-actions{display:none!important}
   html,body{max-width:100%;overflow-x:hidden}
@@ -209,6 +209,7 @@
   .mobile-nav-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;width:100%;margin:0 0 9px;padding:0 0 11px;border-bottom:1px solid var(--line)}
   .mobile-nav-tools>a,.mobile-nav-tools>button{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:8px;min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--ink2);font:700 12px/1.2 inherit;text-decoration:none;cursor:pointer;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important}
   html .mainnav>a,html .mainnav>a .nav-art{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important}
+  body.mobile-nav-open .mainnav,body.mobile-nav-open .mainnav *{pointer-events:auto;filter:none!important;-webkit-filter:none!important}
   .mobile-nav-tools>a,.mobile-nav-tools>button,html .mainnav>a{transition:background .16s ease,border-color .16s ease,transform .16s ease!important}
   .mobile-nav-tools>a:active,.mobile-nav-tools>button:active,html .mainnav>a:active{background:var(--surface3)!important;transform:scale(.975)!important}
   html .mainnav>a.on .nav-art{animation:mobileNavPulse .38s ease both}
@@ -223,6 +224,12 @@
   .tscroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
   #modalBg{padding:10px!important;align-items:flex-end!important}
   #modal{width:100%!important;max-width:100%!important;max-height:calc(100dvh - 20px)!important;border-radius:18px 18px 10px 10px!important}
+}
+@supports (-webkit-touch-callout:none){
+  @media(max-width:760px){
+    body.mobile-nav-open .mainnav{transform:translate3d(0,0,0)!important;opacity:1!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+    body.mobile-nav-open .mobile-nav-backdrop{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  }
 }
 @keyframes mobileDrawerIn{from{opacity:.45;transform:translateX(28px)}to{opacity:1;transform:none}}
 @keyframes mobileNavPulse{50%{transform:scale(1.12);box-shadow:0 0 0 7px color-mix(in srgb,var(--nav-color) 14%,transparent)}}
