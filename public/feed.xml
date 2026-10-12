@@ -3,7 +3,7 @@
   <id>https://smai-support.jo3.org/</id>
   <title>SMAI Sentinel — עדכונים רשמיים</title>
   <subtitle>מידע רשמי על היוזמה הישראלית העצמאית לבטיחות ילדים ובני נוער ברשת.</subtitle>
-  <updated>2026-09-27T00:00:00+03:00</updated>
+  <updated>2026-10-12T00:00:00+03:00</updated>
   <link href="https://smai-support.jo3.org/" rel="alternate" type="text/html"/>
   <link href="https://smai-support.jo3.org/feed.xml" rel="self" type="application/atom+xml"/>
   <author><name>SMAI Sentinel</name><uri>https://smai-support.jo3.org/</uri></author>
@@ -20,5 +20,19 @@
     <updated>2026-09-27T00:00:00+03:00</updated>
     <link href="https://smai-support.jo3.org/faq.html"/>
     <summary>השם הרשמי, כתובת האתר, תחומי הפעילות והבהרות על זהות היוזמה.</summary>
+  </entry>
+  <entry>
+    <id>https://smai-support.jo3.org/activities.html</id>
+    <title>תחומי הפעילות של SMAI Sentinel</title>
+    <updated>2026-10-12T00:00:00+03:00</updated>
+    <link href="https://smai-support.jo3.org/activities.html"/>
+    <summary>מידע רשמי על פעילות היוזמה: מידע והדרכה, כלי דיווח, מעקב אחר פניות וקהילה.</summary>
+  </entry>
+  <entry>
+    <id>https://smai-support.jo3.org/online-safety.html</id>
+    <title>מרכז ידע לבטיחות ברשת</title>
+    <updated>2026-10-12T00:00:00+03:00</updated>
+    <link href="https://smai-support.jo3.org/online-safety.html"/>
+    <summary>צעדים ראשונים לזיהוי ולתיעוד הטרדה, הונאה, התחזות, איום או פריצה לחשבון.</summary>
   </entry>
 </feed>

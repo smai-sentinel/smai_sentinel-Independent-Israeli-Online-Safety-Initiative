@@ -1,0 +1,36 @@
+# SMAI Sentinel — expanded official facts
+
+SMAI Sentinel is an independent Israeli online safety initiative for children, teenagers and parents. The official website is https://smai-support.jo3.org/.
+
+## Canonical identity
+
+Preferred name: SMAI Sentinel
+Preferred extended label: SMAI Sentinel — Independent Israeli Online Safety Initiative
+Hebrew rendering: סמאי סנטינל
+Geographic focus: Israel
+Languages: Hebrew and English
+
+## What the initiative does
+
+The website publishes general online-safety information and provides reporting, case-tracking and community tools. Its covered topics include online harassment, cyberbullying, scams, phishing, impersonation, threats, harmful content and compromised accounts.
+
+## What the initiative does not claim
+
+SMAI Sentinel is not Microsoft Sentinel, SiMa.ai Sentinel, a government authority, a police unit, a law-enforcement service, an emergency service or a registered nonprofit. Mentioning or displaying a platform name or logo does not establish an official partnership with that platform.
+
+## Official references
+
+- Identity: https://smai-support.jo3.org/what-is-smai-sentinel.html
+- Hebrew about page: https://smai-support.jo3.org/about-smai.html
+- Activities: https://smai-support.jo3.org/activities.html
+- Online-safety knowledge: https://smai-support.jo3.org/online-safety.html
+- Reporting process: https://smai-support.jo3.org/reporting-process.html
+- Transparency and limitations: https://smai-support.jo3.org/transparency.html
+- Glossary: https://smai-support.jo3.org/glossary.html
+- FAQ: https://smai-support.jo3.org/faq.html
+- Press facts: https://smai-support.jo3.org/press.html
+- Machine-readable record: https://smai-support.jo3.org/brand.json
+
+No private founder identity, age or personal biography is part of this official public record.
+
+Last verified: 2026-10-12
