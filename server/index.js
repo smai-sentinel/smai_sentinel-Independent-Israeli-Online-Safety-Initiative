@@ -435,7 +435,7 @@ async function generate(env,prompt,history=[],options={}){
   if(env.AI&&!env.GEMINI_API_KEY){
     await limit(env,'ai:inference-budget',100,86400);
     const messages=[{role:'system',content:AI_SYSTEM+'\n\n'+SITE_KNOWLEDGE},...history.slice(-6).filter(m=>m&&['user','model'].includes(m.role)&&typeof m.text==='string').map(m=>({role:m.role==='model'?'assistant':'user',content:m.text.slice(0,1500)})),{role:'user',content:prompt.slice(0,6000)}];
-    let result;try{result=await env.AI.run('@cf/meta/llama-3.1-8b-instruct-fp8',{messages,max_tokens:900,temperature:0.62});}catch{throw new HttpError(503,'שירות ה-AI עמוס או שהמכסה הסתיימה. נסו שוב מאוחר יותר.');}
+    let result;try{result=await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast',{messages,max_tokens:1200,temperature:0.38});}catch{try{result=await env.AI.run('@cf/meta/llama-3.1-8b-instruct-fp8',{messages,max_tokens:900,temperature:0.45});}catch{throw new HttpError(503,'שירות ה-AI עמוס או שהמכסה הסתיימה. נסו שוב מאוחר יותר.');}}
     const text=typeof result?.response==='string'?result.response.trim():'';
     requireThat(text,502,'לא התקבלה תשובה מהעוזר. נסו שוב.');return {text,mode:'workers-ai'};
   }
