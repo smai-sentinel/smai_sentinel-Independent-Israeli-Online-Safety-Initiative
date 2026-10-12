@@ -312,4 +312,16 @@ body.sidebar-collapsed .mainnav .nav-label,body.sidebar-collapsed .mainnav .nav-
   #ai-fab{left:12px!important;right:auto!important;bottom:max(88px,calc(env(safe-area-inset-bottom) + 78px))!important;z-index:1320!important}
   .home-community{border-radius:18px!important;padding:22px 17px!important;box-shadow:0 12px 34px #001b2b16!important}
 }
+
+/* Mobile drawer must sit above its backdrop. The nav lives inside the topbar,
+   so raising only the nav cannot escape the topbar stacking context. */
+@media(max-width:760px){
+  body.mobile-nav-open .topbar{z-index:10030!important;overflow:visible!important}
+  body.mobile-nav-open .topin{overflow:visible!important}
+  .mobile-nav-backdrop{z-index:10020!important;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  html .mainnav{z-index:30!important;visibility:hidden!important;pointer-events:none!important;opacity:1!important;filter:none!important;-webkit-filter:none!important}
+  html .mainnav.open,body.mobile-nav-open .mainnav{visibility:visible!important;pointer-events:auto!important;transform:translate3d(0,0,0)!important}
+  html .mainnav.open *,body.mobile-nav-open .mainnav *{pointer-events:auto!important;filter:none!important;-webkit-filter:none!important}
+  #burger{z-index:40!important;pointer-events:auto!important}
+}
 @keyframes mobileToastIn{from{opacity:0;transform:translateY(-14px) scale(.97)}to{opacity:1;transform:none}}
