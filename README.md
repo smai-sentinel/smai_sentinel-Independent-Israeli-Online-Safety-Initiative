@@ -19,6 +19,10 @@ The local API uses `.local/sentinel.sqlite` and a **local-only simulated owner**
 
 This is a **server-backed application**, not a GitHub Pages/static-only build. The build emits a Cloudflare-compatible Worker at `dist/server/index.js`. Runtime bindings and migrations are packaged by Sites. The private preview has its own database; it does not read or mutate the legacy Firebase project.
 
+## Optional Google Mail connection
+
+The AI mail workspace uses Google OAuth; it never asks for or stores a mailbox password. Configure `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, and a long random `EMAIL_TOKEN_KEY` as Worker secrets. Register the Worker URL `/api/email/callback` as an authorized Google OAuth redirect URI. Required scopes are Gmail read-only and send. Sending always requires an explicit confirmation in the browser.
+
 Configure server environment secrets outside source control:
 
 - `ADMIN_EMAILS`: explicit, comma-separated owner allowlist. Never inferred from the first visitor.
