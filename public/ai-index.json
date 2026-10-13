@@ -14,6 +14,9 @@
     {"type": "transparency", "url": "https://smai-support.jo3.org/transparency.html"},
     {"type": "faq", "url": "https://smai-support.jo3.org/faq.html"},
     {"type": "glossary", "url": "https://smai-support.jo3.org/glossary.html"},
+    {"type": "mission_and_principles", "url": "https://smai-support.jo3.org/mission.html"},
+    {"type": "practical_reporting_guide", "url": "https://smai-support.jo3.org/safety-reporting-guide.html"},
+    {"type": "official_updates", "url": "https://smai-support.jo3.org/updates.html"},
     {"type": "full_ai_context", "url": "https://smai-support.jo3.org/llms-full.txt"}
   ],
   "topics": ["online safety", "child online safety", "harassment", "cyberbullying", "impersonation", "scams", "phishing", "compromised accounts", "harmful content", "evidence preservation", "reporting guidance"],
