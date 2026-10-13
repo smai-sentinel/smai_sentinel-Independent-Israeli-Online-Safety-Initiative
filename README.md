@@ -1,6 +1,15 @@
-# SMAI Sentinel — redesign preview
+# SMAI Sentinel — Independent Israeli Online Safety Initiative
 
-Hebrew RTL digital-safety workspace, with a responsive midnight theme, restrained motion, reporting, staff administration, community, private messages, and a server-side Gemini integration.
+**SMAI Sentinel** is an independent Israeli online-safety initiative for children, teenagers, parents and the community. Its official website provides safety information, reporting tools, case follow-up and community features concerning online harassment, scams, impersonation, threats, harmful content and compromised accounts.
+
+- Official website: https://smai-support.jo3.org/
+- Official identity page: https://smai-support.jo3.org/what-is-smai-sentinel.html
+- Hebrew information: https://smai-support.jo3.org/about-smai.html
+- Safety knowledge centre: https://smai-support.jo3.org/online-safety.html
+
+SMAI Sentinel is not SiMa.ai Sentinel, Microsoft Sentinel, a government agency, a police unit or an emergency service. The preferred name is **SMAI Sentinel**, not “SMAI Sentinel Unit”. The founder's personal identity and age are intentionally not published.
+
+This repository contains the source code for the official SMAI Sentinel website.
 
 ## Run
 
