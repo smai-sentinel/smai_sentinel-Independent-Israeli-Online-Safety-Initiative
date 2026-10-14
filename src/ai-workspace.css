@@ -125,3 +125,4 @@ body .ai-hub #aiHubInput,body .ai-hub #aiHistorySearch{background:transparent!im
 }
 @media(max-height:650px){.ai-welcome-mark,.ai-eyebrow{display:none}.ai-welcome h1{font-size:26px;margin-top:0}.ai-welcome-suggestions{margin-top:15px}.ai-welcome-suggestions button{padding:9px}.ai-hub-thread.is-empty{align-content:start}.ai-welcome>p br{display:none}}
 @media(prefers-reduced-motion:reduce){.ai-hub *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.ai-agent-human{display:grid;gap:4px;margin:12px 0;padding:13px 15px;border:1px solid #f4bd5166;border-radius:14px;background:#f4bd5115;color:var(--ink)}.ai-agent-human b{color:#d89212}.ai-agent-human span{font-size:13px;color:var(--ink2);line-height:1.55}
