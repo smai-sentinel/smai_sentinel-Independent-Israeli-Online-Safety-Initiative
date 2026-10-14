@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "SMAI AI Work Agent",
+  "version": "0.1.0",
+  "description": "סוכן SMAI AI עם שליטה מאושרת בטאבים, סמן גלוי ויומן פעולות חי.",
+  "icons": {"16": "icons/smai-16.png", "32": "icons/smai-32.png", "48": "icons/smai-48.png", "128": "icons/smai-128.png"},
+  "permissions": ["activeTab", "scripting", "tabs", "storage", "sidePanel"],
+  "optional_host_permissions": ["https://*/*", "http://*/*"],
+  "host_permissions": ["https://smai-sentinel-api.smai-sentinel-hcode404.workers.dev/*"],
+  "background": {"service_worker": "service-worker.js", "type": "module"},
+  "side_panel": {"default_path": "sidepanel.html"},
+  "action": {"default_title": "פתיחת SMAI AI", "default_icon": {"16": "icons/smai-16.png", "32": "icons/smai-32.png"}},
+  "content_scripts": [{"matches": ["https://smai-support.jo3.org/*"], "js": ["content.js"], "run_at": "document_idle"}],
+  "web_accessible_resources": [{"resources": ["content.js"], "matches": ["https://*/*", "http://*/*"]}]
+}

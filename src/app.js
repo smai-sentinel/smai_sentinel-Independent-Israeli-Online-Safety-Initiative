@@ -1944,6 +1944,7 @@ function runCleanup(){ CLEANUP.forEach(f=>{ try{ f(); }catch(e){} }); CLEANUP = 
 /* ===================== דף הבית ===================== */
 route('/', async app => renderHome(app, {ic,esc,Auth,DEPTS}));
 route('/ai',async app=>{const {renderAiHub}=await import('./ai-hub.js');return renderAiHub(app,{request,user:Auth.user});});
+route('/smai-ai',async app=>{const {renderAiHub}=await import('./ai-hub.js');return renderAiHub(app,{request,user:Auth.user});});
 route('/games',async(app,id)=>{const {renderGames}=await import('./games.js');return renderGames(app,{Store:remoteStore,user:Auth.user,esc,onCleanup},id);});
 route('/law-enforcement',async app=>{
   if(!Auth.user)return app.innerHTML=requireLogin();
@@ -3516,7 +3517,7 @@ async function userActionsModal(userId, usersCache){
     <div style="margin-top:5px">${rankBadge(u.rank)}
       ${banned?'<span class="b b-dang">מורחק</span>':''}${muted?'<span class="b b-warn">מושתק</span>':''}</div></div></div>
   <div class="m-b">
-    ${me.rank==='founder'?'<button type="button" class="btn btn-p btn-block" id="uaBalance">ניהול scoint</button>':''}
+    ${me.rank==='founder'?'<button type="button" class="btn btn-p btn-block" id="uaBalance">ניהול scoint</button><button type="button" class="btn btn-g btn-block" id="uaAiCredits">ניהול קרדיטי AI</button>':''}
     <dl class="kv small" style="margin-bottom:18px">
       <dt>הצטרף</dt><dd>${fmtDate(u.createdAt)}</dd>
       <dt>דרגה</dt><dd>${RANKS[u.rank]?.l||'משתמש'}</dd>
@@ -3545,6 +3546,9 @@ async function userActionsModal(userId, usersCache){
       openModal(`<div class="m-h"><h3>scoint של ${esc(u.name)}</h3></div><form id="balanceForm"><div class="m-b"><p>יתרה נוכחית: <b>${wallet.balance}</b> scoint</p><label>שינוי ביתרה (מספר שלילי להפחתה)<input name="amount" type="number" min="-100000" max="100000" step="1" required></label><label>סיבת השינוי<textarea name="reason" minlength="3" maxlength="300" required></textarea></label><p class="small mute">השינוי נשמר בהיסטוריית ה־scoint עם זיהוי היוצר.</p><p id="balanceError" role="status"></p></div><div class="m-f"><button class="btn btn-p" type="submit">אישור שינוי</button><button class="btn btn-g" type="button" onclick="closeModal()">ביטול</button></div></form>`);
       $('#balanceForm').onsubmit=async event=>{event.preventDefault();const form=event.currentTarget,button=form.querySelector('[type=submit]');button.disabled=true;try{await request('/api/rewards','POST',{action:'adjustBalance',userId:u.id,amount:Number(form.elements.amount.value),reason:form.elements.reason.value});closeModal();toast('היתרה עודכנה');}catch(error){$('#balanceError').textContent=error.message;button.disabled=false;}};
     }catch(error){toast(error.message,'err');}
+  };
+  if(el('uaAiCredits'))el('uaAiCredits').onclick=async()=>{
+    try{const credits=await request('/api/ai/credits','POST',{action:'inspect',userId:u.id});openModal(`<div class="m-h"><h3>קרדיטי AI של ${esc(u.name)}</h3></div><form id="aiCreditsForm"><div class="m-b"><p>קרדיטים נוספים זמינים: <b>${credits.balance}</b></p><label>תוספת או הפחתה<input name="amount" type="number" min="-10000" max="10000" step="1" required></label><label>סיבה<textarea name="reason" minlength="3" maxlength="300" required></textarea></label><p class="small mute">הקרדיטים מתווספים למכסה היומית ונשמרים עד לשימוש. ליוצר אין מגבלה פנימית.</p><p id="aiCreditsError" role="status"></p></div><div class="m-f"><button class="btn btn-p" type="submit">עדכון קרדיטים</button><button class="btn btn-g" type="button" onclick="closeModal()">ביטול</button></div></form>`);$('#aiCreditsForm').onsubmit=async event=>{event.preventDefault();const form=event.currentTarget,button=form.querySelector('[type=submit]');button.disabled=true;try{const result=await request('/api/ai/credits','POST',{action:'adjust',userId:u.id,amount:Number(form.elements.amount.value),reason:form.elements.reason.value});closeModal();toast(`הקרדיטים עודכנו ל־${result.balance}`);}catch(error){$('#aiCreditsError').textContent=error.message;button.disabled=false;}};}catch(error){toast(error.message,'err');}
   };
   el('uaMute') && (el('uaMute').onclick = ()=>muteModal(u));
   el('uaUnmute') && (el('uaUnmute').onclick = async ()=>{ await Store.update('users',u.id,{muteUntil:null}); closeModal(); toast('ההשתקה בוטלה'); });
@@ -5214,6 +5218,7 @@ async function render(){
 
   renderNav();
   document.body.classList.toggle('is-auth', path === '/login');
+  document.body.classList.toggle('smai-ai-standalone',path==='/smai-ai');
   app.classList.toggle('admin-workspace',path==='/admin');
 
   const founderAccess=Auth.user?.rank==='founder'||Auth.user?.isOwner===true;
