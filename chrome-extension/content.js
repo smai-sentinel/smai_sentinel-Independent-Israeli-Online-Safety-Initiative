@@ -1,5 +1,8 @@
 (()=>{
   if(window.__smaiAgentLoaded)return;window.__smaiAgentLoaded=true;
+  document.documentElement.dataset.smaiExtension='connected';
+  window.dispatchEvent(new CustomEvent('smai-extension-ready'));
+  window.addEventListener('message',event=>{if(event.source===window&&event.origin===location.origin&&event.data?.type==='SMAI_SITE_CONNECT'){document.documentElement.dataset.smaiExtension='connected';window.dispatchEvent(new CustomEvent('smai-extension-ready'));}});
   const visible=el=>{const r=el.getBoundingClientRect(),s=getComputedStyle(el);return r.width>2&&r.height>2&&s.visibility!=='hidden'&&s.display!=='none'};
   const label=el=>(el.innerText||el.textContent||el.getAttribute('aria-label')||el.getAttribute('placeholder')||'').replace(/\s+/g,' ').trim().slice(0,160);
   const candidates=()=>[...document.querySelectorAll('button,a,input,textarea,select,[role="button"],[contenteditable="true"]')].filter(visible).slice(0,220).map((el,index)=>({index,tag:el.tagName.toLowerCase(),text:label(el),type:el.getAttribute('type')||'',name:el.getAttribute('name')||''}));
