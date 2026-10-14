@@ -517,7 +517,7 @@ async function generate(env,prompt,history=[],options={}){
   const model=env.GEMINI_MODEL||'gemini-flash-latest';
   requireThat(/^gemini-[a-z0-9.-]+$/.test(model),503,'הגדרת מודל לא תקינה');
   const contents=history.slice(-14).filter(m=>['user','model'].includes(m.role)&&typeof m.text==='string').map(m=>({role:m.role,parts:[{text:m.text.slice(0,3500)}]}));
-  contents.push({role:'user',parts:[{text:prompt.slice(0,16000)}]});
+  const userParts=[{text:prompt.slice(0,16000)}];for(const file of options.attachments||[]){if(file.kind==='image')userParts.push({inlineData:{mimeType:file.mimeType,data:file.data}});else if(file.text)userParts.push({text:`\n\nקובץ ${file.name}:\n${file.text}`});}contents.push({role:'user',parts:userParts});
   let response;
   const payload={systemInstruction:{parts:[{text:AI_SYSTEM+'\n\n'+SITE_KNOWLEDGE}]},contents,generationConfig:{maxOutputTokens:2200,temperature:0.28}};
   if(options.webSearch===true)payload.tools=[{google_search:{}}];
@@ -595,7 +595,7 @@ export async function api(req,env,ctx={waitUntil(){}}){
     }
     if(path==='/api/admin/ai-config'&&req.method==='PUT'){
       requireThat(u?.isOwner===true,403,'הגדרות AI זמינות ליוצר בלבד');await limit(env,'ai-config:'+u.id,6,3600);const body=await req.json(),apiKey=String(body?.apiKey||'').trim(),model=String(body?.model||'gemini-flash-latest').trim();
-      requireThat(/^AIza[\w-]{25,180}$/.test(apiKey),400,'מפתח ה-API אינו בפורמט תקין');requireThat(/^gemini-[a-z0-9.-]+$/.test(model),400,'שם המודל אינו תקין');
+      requireThat(/^(?:AIza[\w-]{25,180}|aq\.[A-Za-z0-9_-]{20,220})$/.test(apiKey),400,'מפתח ה-API אינו בפורמט תקין');requireThat(/^gemini-[a-z0-9.-]+$/.test(model),400,'שם המודל אינו תקין');
       const sealed=await sealEmailToken(env,{apiKey,model});await db.put('systemSecrets',{id:'ai',sealed,model,updatedAt:now(),updatedBy:u.id});env.GEMINI_API_KEY=apiKey;env.GEMINI_MODEL=model;
       return json({ok:true,configured:true,model,updatedAt:now()});
     }
@@ -701,7 +701,9 @@ export async function api(req,env,ctx={waitUntil(){}}){
       const safetyContext=[...(safetyRisk?[{role:'model',text:`הנחיית בטיחות מערכת: זוהתה סכנה אישית אפשרית. ${safetyTicket?'נפתחה התראת צוות ויש ליידע את המשתמש בכך.':'המשתמש אינו מחובר ולכן לא נפתחה התראת צוות.'} יש לתת תמיכה מיידית והפניה ל-100 או ער״ן 1201, בלי לאשר פגיעה עצמית.`}]:[]),...(incident?[{role:'model',text:`הנחיית ניתוב מערכת: זוהה מקרה מסוג ${incident.label}. הגיבו באמפתיה, אל תאשימו את הפונה, הציעו מעבר למקום בטוח ותיעוד רק אם בטוח לעשות זאת. ${incident.urgent?'יש להדגיש פנייה מיידית לשירותי חירום.':''} הממשק יציג אפשרות לפתיחת דיווח מסודר.`}]:[])];
       const autoSearch=/(חדשות|היום|אתמול|השבוע|לאחרונה|עדכני|מה קרה|אירוע|חטיפת|טיסה|מטוס|חברת תעופה|מי זה|news|latest|today|flight|airline|hijack|flydubai|פליי\s*דובאי)/i.test(prompt);
       const selectedModel=body.model==='s2'?'s2':'s1';
-      const result=await generate(env,prompt,[...(Array.isArray(body.history)?body.history:[]),...safetyContext],{webSearch:body.webSearch===true||autoSearch,model:selectedModel});
+      const attachments=(Array.isArray(body.attachments)?body.attachments:[]).slice(0,5).map(item=>{const name=String(item?.name||'file').slice(0,120),type=String(item?.type||'application/octet-stream'),match=String(item?.data||'').match(/^data:([^;,]+);base64,([A-Za-z0-9+/=]+)$/);requireThat(match&&match[2].length<=5600000,413,'קובץ מצורף אינו תקין או גדול מדי');if(type.startsWith('image/')&&/^image\/(png|jpeg|webp|gif)$/.test(match[1]))return {kind:'image',name,mimeType:match[1],data:match[2]};const decoded=new TextDecoder().decode(b64ToBytes(match[2])).slice(0,50000);return {kind:'text',name,text:decoded};});
+      if(attachments.length&&selectedModel!=='s2')prompt+='\n\nצורפו קבצים. אם אינך יכול לקרוא אותם במודל הנוכחי, בקש לעבור ל-SMAI-S2.';
+      const result=await generate(env,prompt,[...(Array.isArray(body.history)?body.history:[]),...safetyContext],{webSearch:body.webSearch===true||autoSearch,model:selectedModel,attachments});
       if(body.requireModel)requireThat(['gemini','workers-ai'].includes(result.mode),503,'ספק ה-AI לא קיבל את הבקשה. יש לבדוק את המפתח, המודל והמכסה בשרת.');
       const originalPrompt=String(body.prompt||''),mailAction=/(התחבר|חבר|פתח|שלח|סכם|בדוק).{0,32}(מייל|gmail|דוא[״"]?ל)|(?:מייל|gmail|דוא[״"]?ל).{0,32}(התחבר|חבר|פתח|שלח|סכם|בדוק)/i.test(originalPrompt)?{type:'mail',label:/שלח/i.test(originalPrompt)?'פתיחת שליחת מייל':'חיבור וניהול המייל'}:null;
       return json({...result,memorySaved,controls:adaptiveControls(originalPrompt,result.text,incident),action:mailAction,agentView,openedPage:openedPage?{url:openedPage.url,title:openedPage.title,description:openedPage.description,host:openedPage.host}:null,safetyRisk,safetyEscalated:!!safetyTicket,safetyTicketId:safetyTicket?.id||null,incident,reportSuggestion:incident?{label:incident.label,href:`/report?source=ai&type=${encodeURIComponent(incident.type)}&dept=${encodeURIComponent(incident.department)}`} : null,crisis:{emergency:'100',support:'1201',welfare:'118',childOnline:'105'}});
