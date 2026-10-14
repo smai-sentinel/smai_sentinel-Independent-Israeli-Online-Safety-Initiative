@@ -438,24 +438,30 @@ async function browserSocket(env,sessionId){
 }
 async function startBrowserAgent(env,plan){
   requireThat(env.BROWSER&&env.BACKUP,503,'מצב Work אינו זמין כרגע');const session=await env.BROWSER.acquire({targets:true});let socket;
-  try{socket=await browserSocket(env,session.sessionId);const created=await cdpCommand(socket,'Target.createTarget',{url:'about:blank'}),live=await env.BROWSER.getLiveView(session.sessionId,{mode:'tab',targetId:created.targetId,expiresInMs:600000});return {sessionId:session.sessionId,targetId:created.targetId,liveUrl:live.devtoolsFrontendUrl||live.url||'',plan};}
+  try{socket=await browserSocket(env,session.sessionId);const created=await cdpCommand(socket,'Target.createTarget',{url:'about:blank'}),live=await env.BROWSER.getLiveView(session.sessionId,{mode:'full',expiresInMs:3600000});return {sessionId:session.sessionId,targetId:created.targetId,liveUrl:live.devtoolsFrontendUrl||live.url||'',plan};}
   finally{try{socket?.close();}catch{}}
 }
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function clearSafeBrowserObstacle(socket,sid){
+  const found=await cdpCommand(socket,'Runtime.evaluate',{expression:`(()=>{const safe=/^(accept all|accept cookies|allow all|קבל הכל|אישור עוגיות|אפשר הכל|נסה שוב|retry|reload)$/i;for(const el of document.querySelectorAll('button,[role="button"]')){const text=(el.innerText||el.textContent||'').replace(/\\s+/g,' ').trim();if(safe.test(text)){const r=el.getBoundingClientRect();if(r.width>0&&r.height>0)return {text,x:r.left+r.width/2,y:r.top+r.height/2};}}return null})()`,returnByValue:true},sid),target=found?.result?.value;
+  if(!target)return null;
+  await cdpCommand(socket,'Input.dispatchMouseEvent',{type:'mouseMoved',x:target.x,y:target.y},sid);await pause(450);
+  await cdpCommand(socket,'Input.dispatchMouseEvent',{type:'mousePressed',x:target.x,y:target.y,button:'left',clickCount:1},sid);await cdpCommand(socket,'Input.dispatchMouseEvent',{type:'mouseReleased',x:target.x,y:target.y,button:'left',clickCount:1},sid);await pause(900);return target.text;
+}
 async function runBrowserAgent(env,state){
   let socket;try{
     socket=await browserSocket(env,state.sessionId);const attached=await cdpCommand(socket,'Target.attachToTarget',{targetId:state.targetId,flatten:true}),sid=attached.sessionId;
-    await cdpCommand(socket,'Page.enable',{},sid);await cdpCommand(socket,'Runtime.enable',{},sid);await cdpCommand(socket,'Page.navigate',{url:state.plan.startUrl},sid);await pause(1800);
+    await cdpCommand(socket,'Page.enable',{},sid);await cdpCommand(socket,'Runtime.enable',{},sid);await cdpCommand(socket,'Page.navigate',{url:state.plan.startUrl},sid);await pause(1800);const clearedObstacle=await clearSafeBrowserObstacle(socket,sid);
     if(state.plan.query){
       const selectors={youtube:['input[name="search_query"]','input#search'],google:['textarea[name="q"]','input[name="q"]'],wikipedia:['input[name="search"]','#searchInput']}[state.plan.kind]||[];
-      const expression=`(()=>{const el=${JSON.stringify(selectors)}.map(s=>document.querySelector(s)).find(Boolean);if(!el)return false;el.focus();el.value='';el.dispatchEvent(new Event('input',{bubbles:true}));return true})()`;
+      const expression=`(()=>{const el=${JSON.stringify(selectors)}.map(s=>document.querySelector(s)).find(Boolean);if(!el)return null;const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}})()`;
       const focused=await cdpCommand(socket,'Runtime.evaluate',{expression,returnByValue:true},sid);
-      if(focused?.result?.value){await cdpCommand(socket,'Input.insertText',{text:state.plan.query},sid);await pause(500);await cdpCommand(socket,'Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13},sid);await cdpCommand(socket,'Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13},sid);}
+      if(focused?.result?.value){const point=focused.result.value;await cdpCommand(socket,'Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y},sid);await pause(500);await cdpCommand(socket,'Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,button:'left',clickCount:1},sid);await cdpCommand(socket,'Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,button:'left',clickCount:1},sid);await cdpCommand(socket,'Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',windowsVirtualKeyCode:65,modifiers:2},sid);await cdpCommand(socket,'Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',windowsVirtualKeyCode:65,modifiers:2},sid);await cdpCommand(socket,'Input.insertText',{text:state.plan.query},sid);await pause(500);await cdpCommand(socket,'Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13},sid);await cdpCommand(socket,'Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13},sid);}
       else{const fallback=state.plan.kind==='youtube'?`https://www.youtube.com/results?search_query=${encodeURIComponent(state.plan.query)}`:state.plan.kind==='wikipedia'?`https://he.wikipedia.org/w/index.php?search=${encodeURIComponent(state.plan.query)}`:`https://www.google.com/search?q=${encodeURIComponent(state.plan.query)}`;await cdpCommand(socket,'Page.navigate',{url:fallback},sid);}
       await pause(2600);
     }
     const snapshot=await cdpCommand(socket,'Runtime.evaluate',{expression:`(()=>({url:location.href,title:document.title,text:(document.body?.innerText||'').replace(/\\s+/g,' ').slice(0,16000)}))()`,returnByValue:true},sid),value=snapshot?.result?.value||{};
-    return {url:String(value.url||state.plan.startUrl),title:String(value.title||'').slice(0,200),text:String(value.text||'').slice(0,16000)};
+    return {url:String(value.url||state.plan.startUrl),title:String(value.title||'').slice(0,200),text:String(value.text||'').slice(0,16000),clearedObstacle};
   }finally{try{socket?.close();}catch{}}
 }
 function explicitMemory(text){
