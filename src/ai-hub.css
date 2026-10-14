@@ -20,9 +20,10 @@ body.smai-ai-standalone .topbar,
 body.smai-ai-standalone .site-header,
 body.smai-ai-standalone #ai-fab,
 body.smai-ai-standalone footer{display:none!important}
-body.smai-ai-standalone main{padding:0!important}
+body.smai-ai-standalone main{box-sizing:border-box!important;width:100vw!important;max-width:none!important;margin:0!important;padding:0!important}
 body.smai-ai-standalone #app{max-width:none!important;width:100%!important;margin:0!important;padding:0!important}
 body.smai-ai-standalone{height:100%;min-height:100%;overflow:hidden;overscroll-behavior:none;background:var(--surface)}
+html:has(body.smai-ai-standalone),body.smai-ai-standalone{width:100%;max-width:none;margin:0}
 body.smai-ai-standalone main,
 body.smai-ai-standalone #app{height:100%;min-height:0;overflow:hidden}
 body.smai-ai-standalone .ai-hub{box-sizing:border-box;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;min-height:0!important;border:0!important;border-radius:0!important;box-shadow:none!important}

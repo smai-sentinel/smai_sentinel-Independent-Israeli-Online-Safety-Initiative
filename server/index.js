@@ -157,6 +157,10 @@ async function emailTokenKey(env){
 }
 async function sealEmailToken(env,value){const iv=crypto.getRandomValues(new Uint8Array(12)),key=await emailTokenKey(env),encrypted=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(value)));return `${bytesToB64(iv)}.${bytesToB64(new Uint8Array(encrypted))}`;}
 async function openEmailToken(env,value){try{const [iv,data]=String(value||'').split('.').map(b64ToBytes),key=await emailTokenKey(env),plain=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,data);return JSON.parse(new TextDecoder().decode(plain));}catch{throw new HttpError(503,'חיבור המייל דורש התחברות מחדש');}}
+async function hydrateAiConfig(env,db){
+  const row=await db.get('systemSecrets','ai').catch(()=>null);if(!row?.sealed)return;
+  try{const value=await openEmailToken(env,row.sealed);if(value?.apiKey)env.GEMINI_API_KEY=value.apiKey;if(value?.model&&/^gemini-[a-z0-9.-]+$/.test(value.model))env.GEMINI_MODEL=value.model;}catch{}
+}
 function gmailConfigured(env){return !!(env.GOOGLE_OAUTH_CLIENT_ID&&env.GOOGLE_OAUTH_CLIENT_SECRET&&env.EMAIL_TOKEN_KEY);}
 async function gmailAccess(env,db,userId){
   const row=await db.get('emailConnections',userId);requireThat(row?.sealed,409,'חשבון המייל אינו מחובר');const token=await openEmailToken(env,row.sealed);
@@ -544,7 +548,7 @@ export async function api(req,env,ctx={waitUntil(){}}){
       requireThat(requestOrigin===allowedOrigin||requestOrigin===url.origin||extensionRequest,403,'בקשה ממקור לא מורשה');
       requireThat(path==='/api/uploads/dm'?req.headers.get('Content-Type')?.startsWith('multipart/form-data'):req.headers.get('Content-Type')?.startsWith('application/json'),415,'סוג תוכן אינו נתמך');
     }
-    const db=database(env),mediaMatch=path.match(/^\/api\/media\/([A-Za-z0-9_-]+)$/);
+    const db=database(env),mediaMatch=path.match(/^\/api\/media\/([A-Za-z0-9_-]+)$/);await hydrateAiConfig(env,db);
     if(path==='/api/extension/plan'&&req.method==='POST'){
       const raw=await req.text();requireThat(raw.length<=90000,413,'הבקשה גדולה מדי');let body;try{body=JSON.parse(raw);}catch{throw new HttpError(400,'בקשה לא תקינה');}
       requireThat(body?.consent===true,400,'נדרש אישור להעברת תוכן העמוד לספק AI');const goal=String(body.goal||'').trim();requireThat(goal.length>=2&&goal.length<=4000,400,'המטרה אינה תקינה');await limit(env,'extension-plan:'+(req.headers.get('CF-Connecting-IP')||'anonymous'),30,3600);return json(await extensionAgentPlan(env,goal,body.state));
@@ -585,6 +589,19 @@ export async function api(req,env,ctx={waitUntil(){}}){
       return json({typing:Boolean(state&&state.until>Date.now()),convId:state?.convId||''});
     }
     if(path==='/api/status')return json({database:true,ai:true,aiMode:env.GEMINI_API_KEY?'gemini':env.AI?'workers-ai':'basic',mail:!!(env.MAIL_GATEWAY_URL&&env.MAIL_GATEWAY_SECRET||env.RESEND_API_KEY&&env.MAIL_FROM||env.GMAIL_USER&&env.GMAIL_APP_PASSWORD),mailFrom:rank(u)>=60?(env.MAIL_FROM||env.GMAIL_USER||MAIL_BRAND):undefined,migration:'new-database',version:'2.1',...(rank(u)>=60?{model:env.GEMINI_MODEL||'gemini-flash-latest'}:{})});
+    if(path==='/api/admin/ai-config'&&req.method==='GET'){
+      requireThat(u?.isOwner===true,403,'הגדרות AI זמינות ליוצר בלבד');const row=await db.get('systemSecrets','ai');
+      return json({configured:!!(row?.sealed||env.GEMINI_API_KEY),model:row?.model||env.GEMINI_MODEL||'gemini-flash-latest',updatedAt:row?.updatedAt||null,source:row?.sealed?'admin':'environment'});
+    }
+    if(path==='/api/admin/ai-config'&&req.method==='PUT'){
+      requireThat(u?.isOwner===true,403,'הגדרות AI זמינות ליוצר בלבד');await limit(env,'ai-config:'+u.id,6,3600);const body=await req.json(),apiKey=String(body?.apiKey||'').trim(),model=String(body?.model||'gemini-flash-latest').trim();
+      requireThat(/^AIza[\w-]{25,180}$/.test(apiKey),400,'מפתח ה-API אינו בפורמט תקין');requireThat(/^gemini-[a-z0-9.-]+$/.test(model),400,'שם המודל אינו תקין');
+      const sealed=await sealEmailToken(env,{apiKey,model});await db.put('systemSecrets',{id:'ai',sealed,model,updatedAt:now(),updatedBy:u.id});env.GEMINI_API_KEY=apiKey;env.GEMINI_MODEL=model;
+      return json({ok:true,configured:true,model,updatedAt:now()});
+    }
+    if(path==='/api/admin/ai-config'&&req.method==='DELETE'){
+      requireThat(u?.isOwner===true,403,'הגדרות AI זמינות ליוצר בלבד');await db.remove('systemSecrets','ai');return json({ok:true});
+    }
     if(path==='/api/email/status'&&req.method==='GET'){
       requireThat(u,401,'יש להתחבר כדי לחבר מייל');const connection=await db.get('emailConnections',u.id);
       return json({configured:gmailConfigured(env),connected:!!connection?.sealed,email:connection?.email||'',provider:connection?.provider||'gmail',updatedAt:connection?.updatedAt||null});
