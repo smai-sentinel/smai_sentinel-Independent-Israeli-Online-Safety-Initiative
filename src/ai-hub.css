@@ -25,7 +25,7 @@ body.smai-ai-standalone #app{max-width:none!important;width:100%!important;margi
 body.smai-ai-standalone{height:100%;min-height:100%;overflow:hidden;overscroll-behavior:none;background:var(--surface)}
 body.smai-ai-standalone main,
 body.smai-ai-standalone #app{height:100%;min-height:0;overflow:hidden}
-body.smai-ai-standalone .ai-hub{width:100vw!important;max-width:none!important;height:100vh!important;height:100dvh!important;min-height:0!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+body.smai-ai-standalone .ai-hub{box-sizing:border-box;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;min-height:0!important;border:0!important;border-radius:0!important;box-shadow:none!important}
 body.smai-ai-standalone .ai-hub-main{min-height:0}
 @supports(height:100svh){body.smai-ai-standalone .ai-hub{height:100svh!important}}
 @media(max-width:800px){
