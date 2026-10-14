@@ -502,7 +502,8 @@ function adaptiveControls(prompt,text,incident){
   return [];
 }
 async function generate(env,prompt,history=[],options={}){
-  if(env.AI&&!env.GEMINI_API_KEY){
+  const requestedModel=options.model==='s2'?'s2':'s1';
+  if(env.AI&&requestedModel==='s1'){
     const messages=[{role:'system',content:AI_SYSTEM+'\n\n'+SITE_KNOWLEDGE},...history.slice(-12).filter(m=>m&&['user','model'].includes(m.role)&&typeof m.text==='string').map(m=>({role:m.role==='model'?'assistant':'user',content:m.text.slice(0,2500)})),{role:'user',content:prompt.slice(0,9000)}];
     let result;try{result=await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast',{messages,max_tokens:1800,temperature:0.28});}catch{try{result=await env.AI.run('@cf/meta/llama-3.1-8b-instruct-fp8',{messages,max_tokens:1200,temperature:0.34});}catch{throw new HttpError(503,'שירות ה-AI עמוס או שהמכסה הסתיימה. נסו שוב מאוחר יותר.');}}
     const text=typeof result?.response==='string'?result.response.trim():'';
@@ -682,7 +683,8 @@ export async function api(req,env,ctx={waitUntil(){}}){
       if(safetyRisk&&u)safetyTicket=await createAiSafetyAlert(db,u,prompt);
       const safetyContext=[...(safetyRisk?[{role:'model',text:`הנחיית בטיחות מערכת: זוהתה סכנה אישית אפשרית. ${safetyTicket?'נפתחה התראת צוות ויש ליידע את המשתמש בכך.':'המשתמש אינו מחובר ולכן לא נפתחה התראת צוות.'} יש לתת תמיכה מיידית והפניה ל-100 או ער״ן 1201, בלי לאשר פגיעה עצמית.`}]:[]),...(incident?[{role:'model',text:`הנחיית ניתוב מערכת: זוהה מקרה מסוג ${incident.label}. הגיבו באמפתיה, אל תאשימו את הפונה, הציעו מעבר למקום בטוח ותיעוד רק אם בטוח לעשות זאת. ${incident.urgent?'יש להדגיש פנייה מיידית לשירותי חירום.':''} הממשק יציג אפשרות לפתיחת דיווח מסודר.`}]:[])];
       const autoSearch=/(חדשות|היום|אתמול|השבוע|לאחרונה|עדכני|מה קרה|אירוע|חטיפת|טיסה|מטוס|חברת תעופה|מי זה|news|latest|today|flight|airline|hijack|flydubai|פליי\s*דובאי)/i.test(prompt);
-      const result=await generate(env,prompt,[...(Array.isArray(body.history)?body.history:[]),...safetyContext],{webSearch:body.webSearch===true||autoSearch});
+      const selectedModel=body.model==='s2'?'s2':'s1';
+      const result=await generate(env,prompt,[...(Array.isArray(body.history)?body.history:[]),...safetyContext],{webSearch:body.webSearch===true||autoSearch,model:selectedModel});
       if(body.requireModel)requireThat(['gemini','workers-ai'].includes(result.mode),503,'ספק ה-AI לא קיבל את הבקשה. יש לבדוק את המפתח, המודל והמכסה בשרת.');
       const originalPrompt=String(body.prompt||''),mailAction=/(התחבר|חבר|פתח|שלח|סכם|בדוק).{0,32}(מייל|gmail|דוא[״"]?ל)|(?:מייל|gmail|דוא[״"]?ל).{0,32}(התחבר|חבר|פתח|שלח|סכם|בדוק)/i.test(originalPrompt)?{type:'mail',label:/שלח/i.test(originalPrompt)?'פתיחת שליחת מייל':'חיבור וניהול המייל'}:null;
       return json({...result,memorySaved,controls:adaptiveControls(originalPrompt,result.text,incident),action:mailAction,agentView,openedPage:openedPage?{url:openedPage.url,title:openedPage.title,description:openedPage.description,host:openedPage.host}:null,safetyRisk,safetyEscalated:!!safetyTicket,safetyTicketId:safetyTicket?.id||null,incident,reportSuggestion:incident?{label:incident.label,href:`/report?source=ai&type=${encodeURIComponent(incident.type)}&dept=${encodeURIComponent(incident.department)}`} : null,crisis:{emergency:'100',support:'1201',welfare:'118',childOnline:'105'}});
