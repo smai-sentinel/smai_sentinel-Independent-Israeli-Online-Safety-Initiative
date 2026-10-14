@@ -595,7 +595,7 @@ export async function api(req,env,ctx={waitUntil(){}}){
     }
     if(path==='/api/admin/ai-config'&&req.method==='PUT'){
       requireThat(u?.isOwner===true,403,'הגדרות AI זמינות ליוצר בלבד');await limit(env,'ai-config:'+u.id,6,3600);const body=await req.json(),apiKey=String(body?.apiKey||'').trim(),model=String(body?.model||'gemini-flash-latest').trim();
-      requireThat(/^(?:AIza[\w-]{25,180}|aq\.[A-Za-z0-9_-]{20,220})$/.test(apiKey),400,'מפתח ה-API אינו בפורמט תקין');requireThat(/^gemini-[a-z0-9.-]+$/.test(model),400,'שם המודל אינו תקין');
+      requireThat(/^(?:AIza[\w-]{25,180}|aq\.[A-Za-z0-9_-]{20,220})$/i.test(apiKey),400,'מפתח ה-API אינו בפורמט תקין');requireThat(/^gemini-[a-z0-9.-]+$/.test(model),400,'שם המודל אינו תקין');
       const sealed=await sealEmailToken(env,{apiKey,model});await db.put('systemSecrets',{id:'ai',sealed,model,updatedAt:now(),updatedBy:u.id});env.GEMINI_API_KEY=apiKey;env.GEMINI_MODEL=model;
       return json({ok:true,configured:true,model,updatedAt:now()});
     }
