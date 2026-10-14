@@ -1,0 +1,13 @@
+<!doctype html><html dir="rtl" lang="he"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI workspace local test fixture</title><style>body{margin:16px;font-family:Arial;background:#eef0f5}button,input,textarea{font:inherit}</style><div id="fixture"></div><script type="module">
+import {renderAiHub} from '/src/ai-hub.js';
+const calls=[];
+renderAiHub(document.querySelector('#fixture'),{user:{id:'fixture'},request:async(path,method,body,options={})=>{
+ if(path==='/api/ai/access')return {tier:'creator',textPerHour:null,available:true,imagesAvailable:false,searchAvailable:false};
+ if(path==='/api/ai'){
+  calls.push(body);
+  await new Promise((resolve,reject)=>{const timer=setTimeout(resolve,1800);options.signal?.addEventListener('abort',()=>{clearTimeout(timer);reject(new DOMException('Stopped','AbortError'));},{once:true});});
+  return {text:'## תשובת בדיקה\n\n**הבקשה התקבלה:** '+body.prompt+'\n\n- השיחה נשמרת\n- התצוגה תומכת בעברית\n\n```js\nconst ready = true;\n```'};
+ }
+ return {history:[]};
+}});
+</script></html>

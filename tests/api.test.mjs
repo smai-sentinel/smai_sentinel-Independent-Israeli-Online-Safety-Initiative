@@ -368,6 +368,24 @@ test('emergency evidence exports all chats for one hour without notifying the ta
 test('real AI requests fail clearly when no provider key is configured',async()=>{
  const f=fixture();const result=await f.call('ai','POST',{prompt:'איך פותחים פנייה?',requireModel:true,consent:true});assert.equal(result.status,503);f.DB.close();
 });
+test('AI limits allow long member conversations and reserve verified creator access',async()=>{
+ const f=fixture();f.env.AI={run:async()=>({response:'תשובה'})};
+ try{
+  assert.equal((await f.call('ai/access','GET',undefined,'owner')).data.textPerHour,null);
+  assert.equal((await f.call('ai/access','GET',undefined,'alice')).data.textPerHour,120);
+  const bucket=Math.floor(Date.now()/1000/3600);
+  const exhaust=async key=>f.DB.prepare('INSERT INTO request_limits (key,count,expires) VALUES (?,99999,?) ON CONFLICT(key) DO UPDATE SET count=99999').bind(key+':'+bucket,(bucket+1)*3600).run();
+  await exhaust('ai:alice');await exhaust('ai:owner');
+  const request={prompt:'שלום',consent:true,requireModel:true,isOwner:true,rank:'founder'};
+  assert.equal((await f.call('ai','POST',request,'alice')).status,429);
+  assert.equal((await f.call('ai','POST',request,'owner')).status,200);
+  // The former site-wide and inference daily caps no longer block conversations.
+  const day=Math.floor(Date.now()/1000/86400);
+  for(const key of ['ai:site','ai:inference-budget'])await f.DB.prepare('INSERT INTO request_limits (key,count,expires) VALUES (?,99999,?)').bind(key+':'+day,(day+1)*86400).run();
+  assert.equal((await f.call('ai','POST',request,'bob')).status,200);
+  assert.equal((await f.call('ai','POST',request,'owner')).status,200);
+ }finally{f.DB.close();}
+});
 test('Workers AI receives conversation context and returns generated text without an API key',async()=>{
  const f=fixture();let captured;f.env.AI={run:async(model,input)=>{captured={model,input};return {response:'תשובה שנוצרה עבור השאלה'};}};
  const denied=await f.call('ai','POST',{prompt:'שלום',requireModel:true});assert.equal(denied.status,400);
