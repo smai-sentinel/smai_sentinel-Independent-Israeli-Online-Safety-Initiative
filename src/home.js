@@ -1,4 +1,6 @@
-export function renderHome(app, {ic, esc, Auth, DEPTS}) {
+import './home-experience.css';
+
+export function renderHome(app, {ic, esc, Auth, DEPTS, onCleanup}) {
   app.innerHTML = `<div class="sentinel-home">
   <div class="home-top anim-up"><div><div class="eyebrow">מרכז ההגנה שלך ברשת</div><h1>${Auth.user ? `שלום, ${esc((Auth.user.name || 'ברוך הבא').split(' ')[0])}` : 'טוב שהגעת. אנחנו כאן בשבילך.'}</h1><p>דיווח, הכוונה וליווי. הכל במקום אחד.</p></div><span class="system-pill"><i></i> SMAI / SENTINEL</span></div>
   <div class="mission-grid">
@@ -10,5 +12,30 @@ export function renderHome(app, {ic, esc, Auth, DEPTS}) {
   <section class="home-community anim-up d4"><div class="home-community-copy"><span class="eyebrow">SMAI COMMUNITY</span><h2>לא נשארים לבד ברשת.</h2><p>שיחות קהילה מסודרות, חברים, תמיכה ושיתוף — במרחב שמוגן על ידי כללי SMAI ואפשר לדווח בו על כל הודעה.</p><div class="home-community-actions"><a class="btn btn-p" href="/community">כניסה לקהילה ${ic('arrow',16)}</a><a class="btn btn-g" href="/friends">מציאת חברים ${ic('users',16)}</a></div></div><div class="home-community-visual"><span>${ic('message',34)}</span><div><b>קהילה פעילה</b><small>שיחות, חברים ומרחבים בטוחים</small></div><i></i><i></i><i></i></div></section>
   <div class="platform-strip"><span>ליווי בעולם שבו אנחנו חיים</span><b>Instagram</b><b>WhatsApp</b><b>Discord</b><b>Roblox</b><b>TikTok</b></div></div>`;
   app.insertAdjacentHTML('beforeend','<section class="card home-games"><h2>פסק זמן. משחקים ביחד.</h2><p>איקס־עיגול, ארבע בשורה ו־21 גפרורים — פתחו חדר והזמינו חבר.</p><a class="btn btn-p" href="/games">לכל המשחקים</a></section>');
+  const home = app.querySelector('.sentinel-home');
+  home.insertAdjacentHTML('afterbegin', `<div class="sentinel-arrival" aria-hidden="true"><span>SMAI<span class="arrival-line"></span>SENTINEL</span></div><section class="sentinel-stage"><div class="stage-copy"><span class="stage-label">INDEPENDENT ONLINE SAFETY INITIATIVE</span><h2>יותר ביטחון.<br><span>יותר מקום להיות אתם.</span></h2><p>ברשת יש עולם שלם. אנחנו כאן כדי לעזור לכם לנוע בו בביטחון — עם הכוונה, קהילה ואנשים שמקשיבים.</p><div class="stage-actions"><a href="/report" class="stage-primary">בואו נדבר ${ic('arrow',20)}</a><a href="/community" class="stage-secondary">לגלות את הקהילה ${ic('users',20)}</a></div><a href="#home-explore" class="stage-explore">יש עוד מה לגלות ↓</a></div><div class="sentinel-sculpture" aria-hidden="true"><div class="sculpture-orbit orbit-one"></div><div class="sculpture-orbit orbit-two"></div><div class="sculpture-core">S<span>YOUR SPACE. PROTECTED.</span></div><div class="sculpture-chip">SMAI / SENTINEL</div></div><div class="stage-index">01 — מרחב דיגיטלי. יחס אנושי.</div></section>`);
+  home.querySelector('.home-top').id='home-explore';
+  home.querySelector('.stage-explore').onclick=event=>{event.preventDefault();home.querySelector('.home-top').scrollIntoView({behavior:home.dataset.motion==='off'?'instant':'smooth'});};
+  home.insertAdjacentHTML('beforeend', `<section class="home-contact"><span class="stage-label">LET’S MAKE SOMETHING MATTER</span><h2>שיחה אחת יכולה<br>להתחיל משהו גדול.</h2><p>שיתוף פעולה, פנייה עסקית, רעיון או שאלה — נשמח לשמוע.</p><a class="stage-primary" href="/contact">יצירת קשר ${ic('arrow',20)}</a><details class="home-motion-settings"><summary>הגדרות תנועה</summary><label><input type="checkbox" id="homeMotionToggle"> אנימציית כניסה ואפקטים בגלילה</label><small>ההעדפה נשמרת במכשיר הזה. זמינה גם בהגדרות האתר.</small></details></section>`);
+  const media=matchMedia('(prefers-reduced-motion: reduce)');
+  let observer;
+  const toggle=home.querySelector('#homeMotionToggle');
+  const applyMotion=()=>{
+    observer?.disconnect();
+    const enabled=localStorage.getItem('smai_home_motion')!=='off';
+    toggle.checked=enabled;
+    home.dataset.motion=enabled&&!media.matches?'on':'off';
+    home.querySelectorAll('.home-reveal').forEach(el=>el.classList.remove('home-reveal'));
+    if(home.dataset.motion==='on'&&'IntersectionObserver' in window){
+      observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target);}}),{threshold:.08});
+      home.querySelectorAll('.mission-grid,.shortcut-row,.home-bottom,.home-community,.home-contact').forEach(el=>{el.classList.add('home-reveal');observer.observe(el);});
+    }
+  };
+  toggle.onchange=()=>{localStorage.setItem('smai_home_motion',toggle.checked?'on':'off');applyMotion();};
+  applyMotion();
+  if(sessionStorage.getItem('smai_arrived'))home.querySelector('.sentinel-arrival').remove();
+  else sessionStorage.setItem('smai_arrived','1');
+  media.addEventListener('change',applyMotion);
+  onCleanup?.(()=>{observer?.disconnect();media.removeEventListener('change',applyMotion);});
   document.getElementById('quick-report').onsubmit = e => {e.preventDefault(); sessionStorage.setItem('smai_report_draft', document.getElementById('quick-description').value); location.hash = '#/report';};
 }

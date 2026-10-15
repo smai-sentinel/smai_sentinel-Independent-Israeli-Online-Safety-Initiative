@@ -1215,7 +1215,7 @@ const NAV = [
   { p:'/press',     l:'עובדות',      ico:'info' },
   { p:'/games', l:'משחקים', ico:'grid' },
   { p:'/law-enforcement', l:'פניות גורמי אכיפה', ico:'shield' },
-  { p:'/business', l:'פניות עסקיות', ico:'building' },
+  { p:'/contact', l:'יצירת קשר', ico:'building' },
   { p:'/shop', l:'משימות וחנות', ico:'star' },
   { p:'/daily', l:'הכלים שלי', ico:'check' },
   { p:'/support', l:'תמיכה ביוזמה', ico:'heart' },
@@ -1321,7 +1321,7 @@ function renderFooter(){
       <div><h4>מידע</h4><ul>
         <li><a href="/about-smai.html">מה זה SMAI Sentinel?</a></li>
         <li><a href="/terms">תנאי שימוש</a></li><li><a href="/privacy">מדיניות פרטיות</a></li>
-        <li><a href="/report">יצירת קשר</a></li>
+        <li><a href="/contact">יצירת קשר</a></li>
         </ul></div>
     </div>
     <div class="fbot"><span>© ${new Date().getFullYear()} SMAI. כל הזכויות שמורות.</span>
@@ -1942,7 +1942,7 @@ function onCleanup(f){ CLEANUP.push(f); }
 function runCleanup(){ CLEANUP.forEach(f=>{ try{ f(); }catch(e){} }); CLEANUP = []; }
 
 /* ===================== דף הבית ===================== */
-route('/', async app => renderHome(app, {ic,esc,Auth,DEPTS}));
+route('/', async app => renderHome(app, {ic,esc,Auth,DEPTS,onCleanup}));
 route('/ai',async app=>{const {renderAiHub}=await import('./ai-hub.js');return renderAiHub(app,{request,user:Auth.user});});
 route('/smai-ai',async app=>{const {renderAiHub}=await import('./ai-hub.js');return renderAiHub(app,{request,user:Auth.user});});
 route('/games',async(app,id)=>{const {renderGames}=await import('./games.js');return renderGames(app,{Store:remoteStore,user:Auth.user,esc,onCleanup},id);});
@@ -1953,11 +1953,18 @@ route('/law-enforcement',async app=>{
   if(lvl(Auth.user)>=50){try{const rows=await remoteStore.list('lawRequests');$('#lawReview').innerHTML='<h2>תיבת פניות לצוות בכיר</h2>'+rows.map(r=>`<article class="card" style="margin-top:12px"><h3>${esc(r.agency)} · ${esc(r.caseNumber)}</h3><p>זהות הפונה טרם אומתה באופן עצמאי.</p>${['contactName','officialEmail','phone','incident','reason','users','authority'].map(k=>`<p style="white-space:pre-wrap">${esc(r[k])}</p>`).join('')}<span class="b">${esc(r.status)}</span></article>`).join('');}catch(e){$('#lawReview').textContent=e.message;}}
 });
 
-route('/business',async app=>{
+async function renderContact(app){
   if(!Auth.user)return app.innerHTML=requireLogin('צריך להתחבר כדי לשלוח פנייה עסקית');
   app.innerHTML=`<div class="page-h anim-up"><div class="eyebrow">BUSINESS / SMAI</div><h1>פניות עסקיות</h1><p>שיתופי פעולה, חסויות, שירותים לארגונים ורעיונות מסחריים — ישירות ליוצר SMAI Sentinel.</p></div><form id="businessForm" class="card stack" style="max-width:760px"><div class="grid g2"><div class="field"><label>ארגון או עסק</label><input id="businessOrganization" required maxlength="140"></div><div class="field"><label>שם איש קשר</label><input id="businessContact" required maxlength="120"></div></div><div class="grid g2"><div class="field"><label>מייל</label><input id="businessEmail" type="email" required maxlength="254"></div><div class="field"><label>טלפון (רשות)</label><input id="businessPhone" maxlength="40"></div></div><div class="field"><label>נושא</label><select id="businessTopic"><option>שיתוף פעולה</option><option>חסות או תרומה</option><option>שירות לארגון</option><option>עיתונות ומדיה</option><option>אחר</option></select></div><div class="field"><label>אתר הארגון (רשות)</label><input id="businessWebsite" type="url" placeholder="https://"></div><div class="field"><label>פרטי הפנייה</label><textarea id="businessMessage" required minlength="20" maxlength="3000"></textarea></div><button class="btn btn-p">שליחת פנייה ליוצר</button><p id="businessStatus" class="small" role="status"></p></form>`;
-  $('#businessForm').onsubmit=async event=>{event.preventDefault();const button=event.currentTarget.querySelector('button'),status=$('#businessStatus');button.disabled=true;status.textContent='שולח…';try{const saved=await Store.add('businessRequests',{organization:$('#businessOrganization').value.trim(),contactName:$('#businessContact').value.trim(),email:$('#businessEmail').value.trim(),phone:$('#businessPhone').value.trim(),topic:$('#businessTopic').value,message:$('#businessMessage').value.trim(),website:$('#businessWebsite').value.trim()});event.currentTarget.reset();status.textContent='הפנייה התקבלה. מספר מעקב: '+saved.id;toast('הפנייה העסקית נשלחה ליוצר');}catch(error){status.textContent=error.message;button.disabled=false;}};
-});
+  app.querySelector('h1').textContent='יצירת קשר';
+  app.querySelector('.page-h p').textContent='פנייה עסקית, שיתוף פעולה, רעיון או שאלה — הפנייה תגיע לתיבת הפניות בפאנל הניהול.';
+  $('#businessOrganization').required=false;
+  $('#businessOrganization').previousElementSibling.textContent='ארגון או עסק (רשות)';
+  $('#businessTopic').insertAdjacentHTML('afterbegin','<option selected>פנייה כללית</option><option>הצעה לשיפור</option>');
+  $('#businessForm').onsubmit=async event=>{event.preventDefault();const form=event.currentTarget,button=form.querySelector('button'),status=$('#businessStatus');button.disabled=true;status.textContent='שולח…';try{const saved=await Store.add('businessRequests',{organization:$('#businessOrganization').value.trim()||'פנייה אישית',contactName:$('#businessContact').value.trim(),email:$('#businessEmail').value.trim(),phone:$('#businessPhone').value.trim(),topic:$('#businessTopic').value,message:$('#businessMessage').value.trim(),website:$('#businessWebsite').value.trim()});form.reset();status.textContent='הפנייה התקבלה. מספר מעקב: '+saved.id;toast('הפנייה נשלחה לצוות הניהול');}catch(error){status.textContent=error.message;}finally{button.disabled=false;}};
+}
+route('/business',renderContact);
+route('/contact',renderContact);
 
 route('/press', async app => {
   app.innerHTML = `<div class="page-h anim-up"><div class="eyebrow">Press / Facts</div>
@@ -4491,6 +4498,9 @@ route('/account',async app=>{
  $('#ageBand').onchange=async e=>{try{await Store.update('users',u.id,{ageBand:e.target.value});await Auth.refresh();$('#profileStatus').textContent='מצב הגיל המוגן נשמר';}catch(err){$('#profileStatus').textContent=err.message;}};
  $('#reportAgeError').onclick=()=>{openModal(`<div class="m-h"><span class="ico-tile i-brand">${ic('flag',20)}</span><h3>דיווח על טעות בגיל</h3></div><div class="m-b"><p>הצוות יוכל לתקן את קבוצת הגיל, לאפס אותה או לדרוש אימות חוזר.</p><div class="field"><label>מה לא נכון?</label><textarea id="ageErrorText" minlength="10" maxlength="600"></textarea></div><p id="ageErrorStatus" class="small"></p></div><div class="m-f"><button class="btn btn-g" onclick="closeModal()">ביטול</button><button class="btn btn-p" id="sendAgeError">שליחה לצוות</button></div>`);$('#sendAgeError').onclick=async()=>{const text=$('#ageErrorText').value.trim();if(text.length<10)return $('#ageErrorStatus').textContent='נדרש הסבר קצר של לפחות 10 תווים.';const b=$('#sendAgeError');b.disabled=true;try{await Store.add('reports',{kind:'age_dispute',type:'account',targetId:u.id,reason:'בקשה לתיקון גיל',text});closeModal();toast('הדיווח נשלח לצוות');}catch(err){$('#ageErrorStatus').textContent=err.message;b.disabled=false;}};};
  const totpButton=$('[title*="TOTP"]');if(totpButton){totpButton.disabled=false;totpButton.removeAttribute('title');totpButton.textContent='הפעלת אימות דו־שלבי TOTP';totpButton.onclick=async()=>{totpButton.disabled=true;$('#profileStatus').textContent='מכין חיבור מאובטח לאפליקציית אימות…';try{const setup=await beginTotpEnrollment();openModal(`<div class="m-h"><span class="ico-tile i-brand">${ic('shield',20)}</span><h3>אימות דו־שלבי</h3></div><div class="m-b"><p>העתיקו את המפתח לאפליקציית אימות כמו Google Authenticator או Microsoft Authenticator.</p><div class="card mono" style="user-select:all;direction:ltr;text-align:center">${esc(setup.secretKey)}</div><div class="field"><label for="totpCode">הקוד בן 6 הספרות</label><input id="totpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div><p id="totpStatus" class="small"></p></div><div class="m-f"><button class="btn btn-g" onclick="closeModal()">ביטול</button><button class="btn btn-p" id="confirmTotp">הפעלה</button></div>`);$('#confirmTotp').onclick=async()=>{const b=$('#confirmTotp');b.disabled=true;try{await finishTotpEnrollment(setup.secret,$('#totpCode').value);closeModal();toast('האימות הדו־שלבי הופעל');}catch(e){$('#totpStatus').textContent=e?.code==='auth/operation-not-allowed'?'צריך להפעיל TOTP במסוף Firebase לפני שניתן להשלים את החיבור.':(e.message||'הקוד לא תקין');b.disabled=false;}};}catch(e){$('#profileStatus').textContent=e?.code==='auth/operation-not-allowed'?'ספק TOTP עדיין לא מופעל בפרויקט Firebase.':(e.message||'לא ניתן להתחיל את החיבור');}finally{totpButton.disabled=false;}};}
+ const displayPanel=$('[data-settings-panel="display"]');
+ displayPanel.insertAdjacentHTML('beforeend',`<div class="card"><label class="setting-row"><span><b>אנימציות בדף הבית</b><small>אנימציית כניסה וחשיפת תוכן בגלילה. נשמר במכשיר הזה.</small></span><input id="homeMotionPreference" type="checkbox" ${localStorage.getItem('smai_home_motion')!=='off'?'checked':''}></label></div>`);
+ $('#homeMotionPreference').onchange=event=>localStorage.setItem('smai_home_motion',event.target.checked?'on':'off');
  let avatarDraft=u.avatar||'';
  $('#accountPresence').insertAdjacentHTML('beforeend',`<option value="offline" ${u.presenceMode==='offline'?'selected':''}>⚪ אופליין</option>`);
  $('#accountPresence').closest('.field').insertAdjacentHTML('afterend',`<div class="field" id="accountPresenceDurationWrap" ${(u.presenceMode||'online')==='online'?'hidden':''}><label for="accountPresenceDuration">משך הסטטוס</label><select id="accountPresenceDuration"><option value="900000">15 דקות</option><option value="3600000">שעה</option><option value="86400000">יום</option><option value="604800000">שבוע</option><option value="0">עד שאני מכבה</option></select></div>`);
