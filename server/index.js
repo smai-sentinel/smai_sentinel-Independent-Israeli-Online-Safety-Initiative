@@ -151,7 +151,7 @@ async function sendEmailVerification(env,user){
 const bytesToB64=bytes=>{let value='';for(let i=0;i<bytes.length;i+=8192)value+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(value);};
 const b64ToBytes=value=>Uint8Array.from(atob(String(value)),char=>char.charCodeAt(0));
 async function emailTokenKey(env){
-  requireThat(env.EMAIL_TOKEN_KEY,503,'חיבור המייל עדיין לא הוגדר בשרת');
+  requireThat(env.EMAIL_TOKEN_KEY,503,'מפתח ההצפנה הראשי עדיין לא הוגדר בשרת');
   const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(env.EMAIL_TOKEN_KEY)));
   return crypto.subtle.importKey('raw',digest,{name:'AES-GCM'},false,['encrypt','decrypt']);
 }
