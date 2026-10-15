@@ -39,7 +39,7 @@ body .ai-hub #aiHubInput,body .ai-hub #aiHistorySearch{background:transparent!im
 .ai-rail-foot p{margin:7px 0 12px;font-size:11px;line-height:1.6;color:var(--ai-text)}
 .ai-rail-foot small{font-size:10px;color:var(--ai-muted);line-height:1.6}
 .ai-hub-main{min-width:0;min-height:0;display:flex;flex-direction:column;background:var(--ai-bg);position:relative}
-.ai-hub-head{height:72px;flex-shrink:0;padding:15px 25px;border:0;background:var(--ai-bg);gap:12px}
+.ai-hub-head{position:relative;z-index:4;height:72px;flex-shrink:0;padding:15px 25px;border:0;background:var(--ai-bg);gap:12px}
 .ai-hub-head>div:first-child{display:flex;align-items:center;gap:9px}
 .ai-head-identity>div{display:grid;gap:4px}.ai-title-line{display:flex;align-items:center;gap:7px}
 .ai-hub-head b{font-size:15px;color:var(--ai-text);letter-spacing:-.3px}
@@ -148,3 +148,4 @@ body.smai-ai-standalone .ai-hub-answer table{display:block;max-width:100%;overfl
 .ai-browser-later{margin-top:8px!important;padding:10px 14px!important;border:1px solid var(--ai-border)!important;border-radius:12px!important;background:transparent!important;color:var(--ai-muted)!important;font-weight:800!important}
 .ai-model-setting select{min-width:130px;padding:10px 34px 10px 12px;border:1px solid var(--ai-border);border-radius:12px;background:var(--ai-card);color:var(--ai-text);font:800 12px inherit;cursor:pointer}
 .ai-model-quick select{appearance:none;padding:5px 24px 5px 9px;border:1px solid var(--ai-border);border-radius:8px;background:var(--ai-rail);color:var(--ai-text);font:750 10px inherit;cursor:pointer}
+@media(max-width:520px){.ai-model-tag{display:none}.ai-model-quick select{max-width:92px;padding-inline:7px}.ai-head-actions #aiExport{display:none}.ai-settings-button{display:grid!important;width:36px!important;padding:8px!important}.ai-settings-button span{display:none}}
