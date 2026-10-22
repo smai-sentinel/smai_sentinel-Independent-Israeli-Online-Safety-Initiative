@@ -8,6 +8,7 @@ import './rewards.css';
 import {cosmetic,profileScene} from './profile-catalog.js';
 import './profile-studio.css';
 import './interface.css';
+import './nova.css';
 import {mountGifPicker} from './gif-picker.js';
 import {searchSurprise} from './search-surprises.js';
 import {initNativeApp,showNativeNotices} from './native-app.js';
@@ -1204,9 +1205,9 @@ const SEED_MSGS = [
 /* ===================== רכיבים משותפים ===================== */
 const NAV = [
   { p:'/',          l:'ראשי',        ico:'home' },
+  { p:'/community', l:'קהילה',       ico:'message' },
   { p:'/report',    l:'פתיחת דיווח', ico:'shield-alert' },
   { p:'/ai',        l:'SMAI AI',      ico:'sparkle' },
-  { p:'/community', l:'קהילה',       ico:'message' },
   { p:'/dm',        l:'הודעות פרטיות', ico:'send' },
   { p:'/friends',   l:'חברים',       ico:'users' },
   { p:'/my',        l:'הפניות שלי',  ico:'file' },
@@ -1228,9 +1229,12 @@ const NAV_EN={'/':'Home','/report':'New report','/ai':'SMAI AI','/my':'My cases'
 const currentLang=()=>localStorage.getItem('smai_lang')==='en'?'en':'he';
 function renderNav(){
   const cur = location.pathname.split('/')[1] || '';
+  const groupNames={'/': ['המרחב שלכם','Your space'], '/my':['דיווח ותמיכה','Reports & support'], '/games':['לגלות עוד','Explore'], '/partners':['סביב SMAI','About SMAI']};
   const items = NAV.map(n=>{
     const on = ('/'+cur) === n.p || (n.p==='/' && !cur);
-    const label=currentLang()==='en'?(NAV_EN[n.p]||n.l):n.l;return `<a href="${n.p}" data-nav="${n.ico}" class="${on?'on':''}" title="${label}" ${on?'aria-current="page"':''}><span class="nav-art">${ic(n.ico,19)}</span><span class="nav-label">${label}</span><i class="nav-arrow">${ic('chevron',12)}</i></a>`;
+    const label=currentLang()==='en'?(NAV_EN[n.p]||n.l):n.l;
+    const group=groupNames[n.p];
+    return `${group?`<span class="nav-group-label">${group[currentLang()==='en'?1:0]}</span>`:''}<a href="${n.p}" data-nav="${n.ico}" class="${on?'on':''}" title="${label}" ${on?'aria-current="page"':''}><span class="nav-art">${ic(n.ico,19)}</span><span class="nav-label">${label}</span><i class="nav-arrow">${ic('chevron',12)}</i></a>`;
   });
   if(Auth.isStaff()) items.push(`<a href="/admin" data-nav="admin" class="${cur==='admin'?'on':''}"><span class="nav-art">${ic('shield',19)}</span><span class="nav-label">פאנל צוות</span><i class="nav-arrow">${ic('chevron',12)}</i></a>`);
   const mobileTools=`<div class="mobile-nav-tools" aria-label="פעולות חשבון">
@@ -1240,9 +1244,14 @@ function renderNav(){
     <button type="button" data-mobile-action="theme">${ic('moon',17)}<span>${currentLang()==='en'?'Appearance':'תצוגה'}</span></button>
     ${Auth.user?`<button type="button" data-mobile-action="profile">${avatar(Auth.user,'s')}<span>${esc((Auth.user.name||Auth.user.email).split(' ')[0])}</span></button>`:`<a href="/login">${ic('login',17)}<span>${currentLang()==='en'?'Sign in':'כניסה'}</span></a>`}
   </div>`;
-  $('#nav').innerHTML = `<i class="nav-glider" aria-hidden="true"></i><form id="userQuickSearch" class="nav-user-search" role="search"><input id="userQuickName" aria-label="חיפוש משתמש לפי שם מדויק" placeholder="חיפוש שם משתמש מדויק"><button class="iconbtn" aria-label="חיפוש">${ic('search',15)}</button></form>${mobileTools}`+items.join('');
+  $('#nav').innerHTML = `<i class="nav-glider" aria-hidden="true"></i><form id="userQuickSearch" class="nav-user-search" role="search"><input id="userQuickName" aria-label="חיפוש משתמש לפי שם מדויק" placeholder="חיפוש שם משתמש"><button class="iconbtn" aria-label="חיפוש">${ic('search',15)}</button></form>${mobileTools}`+items.join('');
   const nav=$('#nav'),glider=$('.nav-glider',nav),active=$('a.on',nav);const placeGlider=el=>{if(!el||!glider)return;glider.style.transform=`translateY(${el.offsetTop}px)`;glider.style.height=el.offsetHeight+'px';glider.style.opacity='1';};requestAnimationFrame(()=>placeGlider(active));
-  $$('a[href]',nav).forEach(link=>link.addEventListener('click',event=>{if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||link.target)return;const href=link.getAttribute('href');if(!href||href.startsWith('#'))return;event.preventDefault();placeGlider(link);nav.classList.add('nav-switching');setTimeout(()=>{location.href=href;},150);}));
+  // Navigation is handled by the shared client router: no full-page reload or branded interstitial.
+  $$('a[href]',nav).forEach(link=>link.addEventListener('click',()=>placeGlider(link)));
+  let dock=$('#mobileDock');
+  if(!dock){dock=document.createElement('nav');dock.id='mobileDock';dock.className='nova-mobile-dock';dock.setAttribute('aria-label','ניווט מהיר');document.body.appendChild(dock);}
+  dock.innerHTML=[['/','home','בית','Home'],['/community','message','קהילה','Community'],['/report','plus','דיווח','Report'],['/dm','send','הודעות','Messages']].map(([href,icon,he,en])=>`<a href="${href}" ${'/'+cur===href?'aria-current="page"':''} class="${href==='/report'?'dock-report':''}">${ic(icon,20)}<span>${currentLang()==='en'?en:he}</span></a>`).join('')+`<button type="button" id="dockMenu" aria-controls="nav" aria-expanded="${nav.classList.contains('open')}">${ic('grid',20)}<span>${currentLang()==='en'?'More':'עוד'}</span></button>`;
+  $('#dockMenu').onclick=()=>$('#burger').click();
   $('#userQuickSearch').onsubmit=async e=>{e.preventDefault();const q=$('#userQuickName').value.trim().toLocaleLowerCase('he');if(!q||searchSurprise(q))return;const users=await Store.list('users');const found=users.find(x=>String(x.name||'').trim().toLocaleLowerCase('he')===q);if(!found)return toast('לא נמצא משתמש בשם המדויק הזה','warn');openProfile(found.id);};
   $$('[data-mobile-action]',nav).forEach(button=>button.onclick=event=>{
     event.preventDefault();
@@ -4427,15 +4436,13 @@ route('/join', (app)=>{
 route('/login',app=>{
  if(Auth.user){location.hash='#/';return;}
  const scenes=[
-  ['/assets/auth/always-behind-you.png','מעטפת הגנה דיגיטלית','shield','אנחנו תמיד מאחוריך','מהרגע הראשון ועד שהעניין נסגר — החשבון והפניות נשארים במקום אחד.'],
-  ['/assets/auth/response-247.png','שעון תגובה מהיר','clock','זמינים עבורך 24/7','המערכת קולטת ומנתבת פניות בכל שעה לצוות המתאים.'],
-  ['/assets/auth/safe-space.png','מרחב דיגיטלי מוגן','lock','מרחב בטוח לנשום בו','המידע שלך מוגן, והשיחה נשארת זמינה רק לך ולצוות המטפל.']
+  ['/assets/sentinel-core.webp','מגן זכוכית כחול של SMAI','shield','המרחב שלכם. הגב שלנו.','שיחות, קהילה והפניות שלכם. חוזרים למקום אחד שמחבר את הכל.']
  ];
  app.innerHTML=`<section class="auth-stage anim-up"><aside class="auth-visual" aria-label="${scenes[0][1]}">${scenes.map((s,i)=>`<div class="auth-scene ${i?'':'on'}" style="background-image:url('${s[0]}')" role="img" aria-label="${s[1]}"></div>`).join('')}<div class="auth-visual-copy"><span class="auth-live"><i></i> מערכת ההגנה פעילה</span><div class="auth-feature"><span id="authFeatureIcon" class="auth-feature-icon">${ic(scenes[0][2],27)}</span><h2 id="authFeatureTitle">${scenes[0][3]}</h2><p id="authFeatureText">${scenes[0][4]}</p></div><div class="auth-dots">${scenes.map((_,i)=>`<button class="${i?'':'on'}" data-scene="${i}" aria-label="שקופית ${i+1}"></button>`).join('')}</div></div></aside><div class="auth-panel"><div class="auth-brand"><span class="eyebrow">SMAI SENTINEL</span><h1>טוב שחזרת</h1><p>כניסה מאובטחת לחשבון ולפניות שלך.</p></div><button id="googleLogin" class="btn btn-g auth-google">${ic('user',18)} המשך עם Google</button><div class="auth-divider"><span>או באמצעות מייל</span></div><form id="emailAuth" class="stack"><div class="field" id="authNameWrap" hidden><label for="authName">שם תצוגה</label><input id="authName" maxlength="80" autocomplete="name" placeholder="איך לפנות אליך?"></div><div class="field"><label for="authEmail">כתובת מייל</label><input id="authEmail" type="email" required autocomplete="email" placeholder="name@example.com"></div><div class="field"><label for="authPassword">סיסמה</label><input id="authPassword" type="password" required minlength="8" autocomplete="current-password" placeholder="לפחות 8 תווים"></div><label class="auth-remember"><input id="authRemember" type="checkbox" checked><span><b>זכרו אותי במכשיר הזה</b><small>האתר ישמור את כתובת המייל והכניסה תישאר פעילה. הסיסמה נשמרת רק בכספת המאובטחת של הדפדפן או המכשיר.</small></span></label><button class="btn btn-p auth-submit" type="submit">כניסה מאובטחת ${ic('chevron',17)}</button></form><div class="auth-actions"><button id="authMode" class="btn btn-link">אין לי חשבון — הרשמה</button><button id="forgotPassword" class="btn btn-link">שכחתי סיסמה</button></div><p id="authStatus" class="auth-status small" role="status"></p><p class="auth-trust">${ic('shield',14)} פרטי ההתחברות מוצפנים ומנוהלים בשירות אימות מאובטח</p></div></section>`;
  let scene=0,sceneTimer;
  const showScene=i=>{scene=i;$$('.auth-scene').forEach((x,n)=>x.classList.toggle('on',n===i));$$('[data-scene]').forEach((x,n)=>x.classList.toggle('on',n===i));$('.auth-visual')?.setAttribute('aria-label',scenes[i][1]);const f=$('.auth-feature');if(f){f.classList.remove('swap');void f.offsetWidth;$('#authFeatureIcon').innerHTML=ic(scenes[i][2],27);$('#authFeatureTitle').textContent=scenes[i][3];$('#authFeatureText').textContent=scenes[i][4];f.classList.add('swap');}};
  $$('[data-scene]').forEach(b=>b.onclick=()=>showScene(Number(b.dataset.scene)));
- if(!matchMedia('(prefers-reduced-motion: reduce)').matches)sceneTimer=setInterval(()=>{if(!$('.auth-stage'))return clearInterval(sceneTimer);showScene((scene+1)%scenes.length);},3000);
+ // Static artwork keeps sign-in immediate and avoids distracting slideshow timers.
  let signup=false;const form=$('#emailAuth'),status=$('#authStatus'),submit=form.querySelector('[type=submit]'),remember=$('#authRemember'),savedEmail=localStorage.getItem('smai_login_email')||'';$('#authEmail').value=savedEmail;remember.checked=Boolean(savedEmail)||localStorage.getItem('smai_remember_login')!=='0';
  const message=e=>({'auth/invalid-credential':'המייל או הסיסמה אינם נכונים','auth/user-not-found':'לא נמצא חשבון עם כתובת המייל הזו','auth/email-already-in-use':'כבר קיים חשבון עם המייל הזה','auth/weak-password':'הסיסמה חלשה מדי','auth/too-many-requests':'בוצעו יותר מדי ניסיונות. המתינו מעט ונסו שוב','auth/network-request-failed':'אין כרגע חיבור לשירות ההתחברות','auth/popup-closed-by-user':'חלון Google נסגר לפני השלמת הכניסה','auth/unauthorized-domain':'כתובת האתר עדיין לא אושרה במערכת ההתחברות'}[e?.code]||e?.message||'הפעולה נכשלה');
  const finish=async()=>{await Auth.refresh();await CFG.load().catch(()=>{});history.replaceState(null,'','/');await render();};
@@ -4499,7 +4506,7 @@ route('/account',async app=>{
  $('#reportAgeError').onclick=()=>{openModal(`<div class="m-h"><span class="ico-tile i-brand">${ic('flag',20)}</span><h3>דיווח על טעות בגיל</h3></div><div class="m-b"><p>הצוות יוכל לתקן את קבוצת הגיל, לאפס אותה או לדרוש אימות חוזר.</p><div class="field"><label>מה לא נכון?</label><textarea id="ageErrorText" minlength="10" maxlength="600"></textarea></div><p id="ageErrorStatus" class="small"></p></div><div class="m-f"><button class="btn btn-g" onclick="closeModal()">ביטול</button><button class="btn btn-p" id="sendAgeError">שליחה לצוות</button></div>`);$('#sendAgeError').onclick=async()=>{const text=$('#ageErrorText').value.trim();if(text.length<10)return $('#ageErrorStatus').textContent='נדרש הסבר קצר של לפחות 10 תווים.';const b=$('#sendAgeError');b.disabled=true;try{await Store.add('reports',{kind:'age_dispute',type:'account',targetId:u.id,reason:'בקשה לתיקון גיל',text});closeModal();toast('הדיווח נשלח לצוות');}catch(err){$('#ageErrorStatus').textContent=err.message;b.disabled=false;}};};
  const totpButton=$('[title*="TOTP"]');if(totpButton){totpButton.disabled=false;totpButton.removeAttribute('title');totpButton.textContent='הפעלת אימות דו־שלבי TOTP';totpButton.onclick=async()=>{totpButton.disabled=true;$('#profileStatus').textContent='מכין חיבור מאובטח לאפליקציית אימות…';try{const setup=await beginTotpEnrollment();openModal(`<div class="m-h"><span class="ico-tile i-brand">${ic('shield',20)}</span><h3>אימות דו־שלבי</h3></div><div class="m-b"><p>העתיקו את המפתח לאפליקציית אימות כמו Google Authenticator או Microsoft Authenticator.</p><div class="card mono" style="user-select:all;direction:ltr;text-align:center">${esc(setup.secretKey)}</div><div class="field"><label for="totpCode">הקוד בן 6 הספרות</label><input id="totpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div><p id="totpStatus" class="small"></p></div><div class="m-f"><button class="btn btn-g" onclick="closeModal()">ביטול</button><button class="btn btn-p" id="confirmTotp">הפעלה</button></div>`);$('#confirmTotp').onclick=async()=>{const b=$('#confirmTotp');b.disabled=true;try{await finishTotpEnrollment(setup.secret,$('#totpCode').value);closeModal();toast('האימות הדו־שלבי הופעל');}catch(e){$('#totpStatus').textContent=e?.code==='auth/operation-not-allowed'?'צריך להפעיל TOTP במסוף Firebase לפני שניתן להשלים את החיבור.':(e.message||'הקוד לא תקין');b.disabled=false;}};}catch(e){$('#profileStatus').textContent=e?.code==='auth/operation-not-allowed'?'ספק TOTP עדיין לא מופעל בפרויקט Firebase.':(e.message||'לא ניתן להתחיל את החיבור');}finally{totpButton.disabled=false;}};}
  const displayPanel=$('[data-settings-panel="display"]');
- displayPanel.insertAdjacentHTML('beforeend',`<div class="card"><label class="setting-row"><span><b>אנימציות בדף הבית</b><small>אנימציית כניסה וחשיפת תוכן בגלילה. נשמר במכשיר הזה.</small></span><input id="homeMotionPreference" type="checkbox" ${localStorage.getItem('smai_home_motion')!=='off'?'checked':''}></label></div>`);
+ displayPanel.insertAdjacentHTML('beforeend',`<div class="card"><label class="setting-row"><span><b>אנימציות בדף הבית</b><small>חשיפה עדינה של תוכן בגלילה, ללא מסך פתיחה. נשמר במכשיר הזה.</small></span><input id="homeMotionPreference" type="checkbox" ${localStorage.getItem('smai_home_motion')!=='off'?'checked':''}></label></div>`);
  $('#homeMotionPreference').onchange=event=>localStorage.setItem('smai_home_motion',event.target.checked?'on':'off');
  let avatarDraft=u.avatar||'';
  $('#accountPresence').insertAdjacentHTML('beforeend',`<option value="offline" ${u.presenceMode==='offline'?'selected':''}>⚪ אופליין</option>`);
@@ -5239,6 +5246,7 @@ async function render(){
 
   renderNav();
   document.body.classList.toggle('is-auth', path === '/login');
+  document.body.classList.toggle('is-home', path === '/');
   document.body.classList.toggle('smai-ai-standalone',path==='/smai-ai');
   app.classList.toggle('admin-workspace',path==='/admin');
 
@@ -5346,6 +5354,7 @@ function initBurger(){
   const desktop=()=>matchMedia('(min-width:761px)').matches;
   const paint=()=>{
     if(desktop()){
+      nav.inert=false;
       const collapsed=localStorage.getItem('smai_sidebar_collapsed')==='1';
       nav.setAttribute('aria-hidden','false');
       document.body.classList.toggle('sidebar-collapsed',collapsed);
@@ -5358,14 +5367,25 @@ function initBurger(){
       nav.setAttribute('aria-hidden',String(!nav.classList.contains('open')));
       b.setAttribute('aria-expanded',String(nav.classList.contains('open')));
       b.setAttribute('aria-label',nav.classList.contains('open')?'סגירת התפריט':'פתיחת התפריט');
+      nav.inert=!nav.classList.contains('open');
     }
+    $('#dockMenu')?.setAttribute('aria-expanded',b.getAttribute('aria-expanded'));
   };
   const closeMobileNav=()=>{nav.classList.remove('open');document.body.classList.remove('mobile-nav-open');paint();b.focus({preventScroll:true});};
   backdrop.onclick=closeMobileNav;
-  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!desktop())closeMobileNav();});
+  document.addEventListener('keydown',event=>{
+    if(desktop()||!nav.classList.contains('open'))return;
+    if(event.key==='Escape'){event.preventDefault();closeMobileNav();return;}
+    if(event.key==='Tab'){
+      const nodes=[b,...nav.querySelectorAll('a[href],button:not([disabled]),input:not([disabled])')].filter(el=>el.getClientRects().length);
+      const first=nodes[0],last=nodes.at(-1);
+      if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
+      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+    }
+  });
   b.onclick=()=>{
     if(desktop())localStorage.setItem('smai_sidebar_collapsed',document.body.classList.contains('sidebar-collapsed')?'0':'1');
-    else nav.classList.toggle('open');
+    else {nav.classList.toggle('open');b.focus({preventScroll:true});}
     paint();
   };
   nav.addEventListener('click',e=>{if(!desktop()&&e.target.closest('a'))closeMobileNav();});
@@ -5462,12 +5482,17 @@ function initInstallApp(){
 /* Boot never writes demo data or bypasses authentication. */
 (async function boot(){
  initTheme();initLanguage();initSfx();initBurger();initNotif();initInstallApp();initNativeApp().catch(()=>{});renderFooter();$('#demoStrip').style.display='none';
+ // Public landing content does not need to wait for account or configuration requests.
+ if(location.pathname==='/'&&!location.hash.startsWith('#/')){
+   document.body.classList.add('is-home');
+   renderHome($('#app'),{ic,esc,Auth,DEPTS,onCleanup});
+ }
  try{await Auth.refresh();}catch(e){if(firebaseUser())toast(e.message,'warn');}
  try{await CFG.load();}catch(e){toast(e.message,'warn');}
  Presence.init();
  const navigate=path=>{history.pushState(null,'',path);closeModal();window.scrollTo({top:0});return render();};
  window.navigate=navigate;
- document.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||a.target||a.hasAttribute('download'))return;const url=new URL(a.href,location.href);if(url.origin!==location.origin||url.pathname.startsWith('/api/'))return;e.preventDefault();navigate(url.pathname+url.search);});
+  document.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||a.target||a.hasAttribute('download'))return;const url=new URL(a.href,location.href);if(url.origin!==location.origin||url.pathname.startsWith('/api/')||/\.[a-z0-9]+$/i.test(url.pathname)||url.protocol!==location.protocol)return;if(url.hash&&!url.hash.startsWith('#/'))return;e.preventDefault();navigate(url.pathname+url.search);});
  window.addEventListener('popstate',()=>{closeModal();window.scrollTo({top:0});render();});
  window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#/'))history.replaceState(null,'',location.hash.slice(1));closeModal();window.scrollTo({top:0});render();});
  await render();document.body.classList.add('ready');initAssistant();

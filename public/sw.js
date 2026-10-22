@@ -1,4 +1,4 @@
-const CACHE='smai-shell-v4-ai-controls';
+const CACHE='smai-shell-v5-nova';
 const SHELL=['/','/manifest.webmanifest','/icons/app-192.png','/icons/app-512.png','/icons/app-maskable-512.png','/smai-icon.jpg'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('smai-shell-')&&key!==CACHE).map(key=>caches.delete(key)))),self.clients.claim()])));

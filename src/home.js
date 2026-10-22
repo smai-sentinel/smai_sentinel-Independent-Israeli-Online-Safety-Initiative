@@ -1,41 +1,94 @@
 import './home-experience.css';
 
 export function renderHome(app, {ic, esc, Auth, DEPTS, onCleanup}) {
-  app.innerHTML = `<div class="sentinel-home">
-  <div class="home-top anim-up"><div><div class="eyebrow">מרכז ההגנה שלך ברשת</div><h1>${Auth.user ? `שלום, ${esc((Auth.user.name || 'ברוך הבא').split(' ')[0])}` : 'טוב שהגעת. אנחנו כאן בשבילך.'}</h1><p>דיווח, הכוונה וליווי. הכל במקום אחד.</p></div><span class="system-pill"><i></i> SMAI / SENTINEL</span></div>
-  <div class="mission-grid">
-    <section class="mission anim-up d1"><div class="section-code">01 / YOUR DIGITAL SAFETY</div><h2>העולם דיגיטלי.<br>ההגנה <span>אישית.</span></h2><p>הטרדה, פריצה או משהו שלא מרגיש נכון? לא צריך להתמודד לבד. מתחילים בצעד קטן, ומבינים יחד מה לעשות.</p><div class="mission-actions"><a class="btn btn-p btn-lg" href="/report">${ic('plus',18)} פתיחת דיווח</a><a class="btn btn-g btn-lg" href="/track">מעקב פנייה ${ic('arrow',17)}</a></div><div class="mission-bottom"><span>${ic('lock',14)} אפשר להשתמש בכינוי</span><span>${ic('heart',14)} לילדים, לנוער ולהורים</span></div></section>
-    <form class="card start-report anim-up d2" id="quick-report"><div class="card-h"><span class="ico-tile i-brand">${ic('message',19)}</span><div><h2>מה קרה ברשת?</h2><span class="small mute">אפשר להתחיל במילים שלך.</span></div></div><label class="sr-only" for="quick-description">תיאור ראשוני של המקרה</label><textarea id="quick-description" maxlength="4000" placeholder="מישהו מטריד אותי, פרצו לי לחשבון, אני דואג לילד שלי…"></textarea><button type="submit" class="btn btn-p btn-block">ממשיכים לדיווח ${ic('arrow',17)}</button><p class="hint">הטקסט יעבור לטופס. שום דיווח לא נשלח לפני האישור שלך.</p></form>
-  </div>
-  <div class="shortcut-row anim-up d3">${[['book','מדריכים לבטיחות ברשת','צעדים מעשיים להגנה על החשבון','articles'],['message','קהילת SMAI','מקום לשאלות, לשיתוף ולתמיכה','community'],[Auth.isStaff()?'shield':'file',Auth.isStaff()?'מרכז השליטה':'הפניות שלי',Auth.isStaff()?'פניות, צוות ומצב המערכת':'כל העדכונים על הפניות שלך',Auth.isStaff()?'admin':'my']].map(([i,t,d,p])=>`<a class="shortcut" href="/${p}"><span class="ico-tile i-brand">${ic(i,20)}</span><div><strong>${t}</strong><small>${d}</small></div>${ic('chevron',16)}</a>`).join('')}</div>
-  <div class="home-bottom"><section class="card anim-up d3"><div class="panel-heading"><h2>במה אפשר לעזור?</h2><span>SUPPORT AREAS / 06</span></div>${DEPTS.map((d,i)=>`<a href="/report" class="department-row"><span class="ico-tile i-${d.cls}">${ic(d.ico,18)}</span><div><strong>${esc(d.short)}</strong><p>${esc(d.desc)}</p></div><span class="dept-n">0${i+1}</span></a>`).join('')}</section><section class="card anim-up d4"><div class="panel-heading"><h2>מרגע הדיווח, יש דרך.</h2><span>THE PROCESS</span></div><ol class="journey"><li><h3>מספרים מה קרה</h3><p>בוחרים פלטפורמה ומתארים את המקרה. אפשר להשתמש בכינוי ; הפנייה משויכת לחשבון שלכם.</p></li><li><h3>הפנייה מגיעה למקום הנכון</h3><p>המערכת מסווגת את הפנייה ומסמנת סימני דחיפות לבדיקת הצוות.</p></li><li><h3>נשארים בקשר</h3><p>מקבלים קוד מעקב לצפייה בעדכונים ולהתכתבות על הפנייה.</p></li></ol><div class="callout c-info" style="margin-top:23px"><span>${ic('info',19)}</span><div class="small">בסכנה מיידית פונים למשטרה בטלפון <a href="tel:100">100</a>. האתר אינו מוקד חירום.</div></div><a href="/articles" class="btn btn-g btn-block" style="margin-top:20px">איך מגנים על החשבון? ${ic('arrow',16)}</a></section></div>
-  <section class="home-community anim-up d4"><div class="home-community-copy"><span class="eyebrow">SMAI COMMUNITY</span><h2>לא נשארים לבד ברשת.</h2><p>שיחות קהילה מסודרות, חברים, תמיכה ושיתוף — במרחב שמוגן על ידי כללי SMAI ואפשר לדווח בו על כל הודעה.</p><div class="home-community-actions"><a class="btn btn-p" href="/community">כניסה לקהילה ${ic('arrow',16)}</a><a class="btn btn-g" href="/friends">מציאת חברים ${ic('users',16)}</a></div></div><div class="home-community-visual"><span>${ic('message',34)}</span><div><b>קהילה פעילה</b><small>שיחות, חברים ומרחבים בטוחים</small></div><i></i><i></i><i></i></div></section>
-  <div class="platform-strip"><span>ליווי בעולם שבו אנחנו חיים</span><b>Instagram</b><b>WhatsApp</b><b>Discord</b><b>Roblox</b><b>TikTok</b></div></div>`;
-  app.insertAdjacentHTML('beforeend','<section class="card home-games"><h2>פסק זמן. משחקים ביחד.</h2><p>איקס־עיגול, ארבע בשורה ו־21 גפרורים — פתחו חדר והזמינו חבר.</p><a class="btn btn-p" href="/games">לכל המשחקים</a></section>');
-  const home = app.querySelector('.sentinel-home');
-  home.insertAdjacentHTML('afterbegin', `<div class="sentinel-arrival" aria-hidden="true"><span>SMAI<span class="arrival-line"></span>SENTINEL</span></div><section class="sentinel-stage"><div class="stage-copy"><span class="stage-label">INDEPENDENT ONLINE SAFETY INITIATIVE</span><h2>יותר ביטחון.<br><span>יותר מקום להיות אתם.</span></h2><p>ברשת יש עולם שלם. אנחנו כאן כדי לעזור לכם לנוע בו בביטחון — עם הכוונה, קהילה ואנשים שמקשיבים.</p><div class="stage-actions"><a href="/report" class="stage-primary">בואו נדבר ${ic('arrow',20)}</a><a href="/community" class="stage-secondary">לגלות את הקהילה ${ic('users',20)}</a></div><a href="#home-explore" class="stage-explore">יש עוד מה לגלות ↓</a></div><div class="sentinel-sculpture" aria-hidden="true"><div class="sculpture-orbit orbit-one"></div><div class="sculpture-orbit orbit-two"></div><div class="sculpture-core">S<span>YOUR SPACE. PROTECTED.</span></div><div class="sculpture-chip">SMAI / SENTINEL</div></div><div class="stage-index">01 — מרחב דיגיטלי. יחס אנושי.</div></section>`);
-  home.querySelector('.home-top').id='home-explore';
-  home.querySelector('.stage-explore').onclick=event=>{event.preventDefault();home.querySelector('.home-top').scrollIntoView({behavior:home.dataset.motion==='off'?'instant':'smooth'});};
-  home.insertAdjacentHTML('beforeend', `<section class="home-contact"><span class="stage-label">LET’S MAKE SOMETHING MATTER</span><h2>שיחה אחת יכולה<br>להתחיל משהו גדול.</h2><p>שיתוף פעולה, פנייה עסקית, רעיון או שאלה — נשמח לשמוע.</p><a class="stage-primary" href="/contact">יצירת קשר ${ic('arrow',20)}</a><details class="home-motion-settings"><summary>הגדרות תנועה</summary><label><input type="checkbox" id="homeMotionToggle"> אנימציית כניסה ואפקטים בגלילה</label><small>ההעדפה נשמרת במכשיר הזה. זמינה גם בהגדרות האתר.</small></details></section>`);
-  const media=matchMedia('(prefers-reduced-motion: reduce)');
+  const name = Auth.user ? esc((Auth.user.name || '').split(' ')[0]) : '';
+  const arrow = ic('arrow', 18);
+  app.innerHTML = `<div class="nova-home">
+    <div class="nova-welcome"><span>${name ? `טוב לראות אותך, ${name}` : 'ברוכים הבאים למרחב שלכם'}</span><span class="nova-micro" dir="ltr">SMAI SENTINEL / HUMAN FIRST</span></div>
+    <section class="nova-hero" aria-labelledby="home-title">
+      <div class="nova-hero-copy">
+        <span class="nova-kicker"><i></i> יוזמה עצמאית לבטיחות ברשת</span>
+        <h1 id="home-title">עולם דיגיטלי.<br><span>גב אנושי.</span></h1>
+        <p>יותר ביטחון להיות מי שאתם. מקום אחד לדווח, לקבל הכוונה ולמצוא אנשים שבצד שלכם.</p>
+        <div class="nova-hero-actions"><a class="nova-button nova-button-primary" href="/report">בואו נדבר ${arrow}</a><a class="nova-button nova-button-quiet" href="/community">לגלות את הקהילה ${ic('users',18)}</a></div>
+        <div class="nova-hero-note">${ic('shield-check',16)} אפשר להתחיל בכינוי. ממשיכים בקצב שלכם.</div>
+        <button type="button" class="nova-watch" data-open-tutorial><span class="nova-play">▶</span><span><b>איך זה עובד?</b><small>הדרכה מצולמת, צעד אחר צעד</small></span></button>
+      </div>
+      <div class="nova-hero-art" aria-hidden="true">
+        <img class="nova-shield" src="/assets/sentinel-core.webp" alt="" width="1024" height="1024" fetchpriority="high">
+        <div class="nova-orbit orbit-a"><i></i></div><div class="nova-orbit orbit-b"><i></i></div>
+        <span class="nova-art-corner corner-one"></span><span class="nova-art-corner corner-two"></span>
+        <div class="nova-art-label"><span class="nova-art-icon">${ic('shield',20)}</span><span><b>CONNECTED. PROTECTED.</b><small>TECHNOLOGY WITH A HUMAN SIDE</small></span></div>
+        <span class="nova-art-coordinate" dir="ltr">S / 01 — YOUR DIGITAL SPACE</span>
+      </div>
+      <div class="nova-hero-bottom"><span>הגנה. הכוונה. קהילה.</span><a href="#home-explore" id="homeExplore">מגלים מה אפשר לעשות כאן <span>↓</span></a><span class="nova-micro" dir="ltr">BUILT AROUND YOU</span></div>
+    </section>
+    <section class="nova-launch-grid" id="home-explore" aria-label="נקודות התחלה">
+      <a href="/report" class="nova-launch nova-launch-report" data-reveal><div class="nova-launch-top"><span class="nova-feature-icon">${ic('shield-alert',25)}</span><span class="nova-micro">01 / SUPPORT</span></div><h2>קרה משהו ברשת?</h2><p>מספרים מה קרה, מסדרים את המידע ומקבלים כיוון לצעד הבא.</p><span class="nova-link">פתיחת דיווח ${arrow}</span></a>
+      <a href="/ai" class="nova-launch nova-launch-ai" data-reveal><div class="nova-launch-top"><span class="nova-feature-icon">${ic('sparkle',25)}</span><span class="nova-micro">02 / INTELLIGENCE</span></div><h2>מחשבה מתחילה בשיחה.</h2><p>שאלות, רעיונות, ניסוח ומידע. הכירו את מרחב ה־AI של SMAI.</p><span class="nova-link">לדבר עם SMAI AI ${arrow}</span></a>
+      <a href="/community" class="nova-launch nova-launch-community" data-reveal><div class="nova-launch-top"><span class="nova-feature-icon">${ic('message',25)}</span><span class="nova-micro">03 / TOGETHER</span></div><h2>אנשים. לא רק פרופילים.</h2><p>מכירים, משתפים ושואלים. הקהילה שלכם, גם אחרי שהמסך נסגר.</p><span class="nova-link">למרחב הקהילה ${arrow}</span></a>
+    </section>
+    <div class="nova-platforms"><span>לצדכם, גם בפלטפורמות שלכם</span><div dir="ltr"><b>ROBLOX</b><b>Discord</b><b>Instagram</b><b>TikTok</b><b>WhatsApp</b></div><small>הפלטפורמות מוצגות לציון תחומי הפעילות, ללא טענה לשותפות.</small></div>
+    <section class="nova-section" aria-labelledby="help-title">
+      <div class="nova-section-heading" data-reveal><div><span class="nova-overline">לא צריך לדעת איך קוראים לזה</span><h2 id="help-title">משהו לא מרגיש נכון?<br><span>יש מאיפה להתחיל.</span></h2></div><a class="nova-text-link" href="/articles">לכל המדריכים ${arrow}</a></div>
+      <div class="nova-departments">${DEPTS.map((d,i)=>`<a href="/report" class="nova-department" data-reveal><span class="nova-dept-number">0${i+1}</span><span class="nova-dept-icon">${ic(d.ico,24)}</span><h3>${esc(d.short)}</h3><p>${esc(d.desc)}</p><span class="nova-dept-arrow">${arrow}</span></a>`).join('')}</div>
+    </section>
+    <section class="nova-report-section" data-reveal aria-labelledby="start-title">
+      <div class="nova-report-copy"><span class="nova-overline">צעד קטן. התחלה חדשה.</span><h2 id="start-title">אפשר פשוט<br>לספר מה קרה.</h2><p>לא צריך למצוא את המילים המושלמות. נתחיל מהסיפור שלכם ונעזור לעשות סדר.</p><ol class="nova-steps"><li><span>01</span><div><b>כותבים במילים שלכם</b><small>תיאור ראשוני, בלי לחץ ובלי שיפוט.</small></div></li><li><span>02</span><div><b>משלימים ושולחים</b><small>בוחרים פלטפורמה ומאשרים את הדיווח.</small></div></li><li><span>03</span><div><b>נשארים בקשר</b><small>עוקבים אחרי הפנייה והעדכונים במקום אחד.</small></div></li></ol></div>
+      <form class="nova-report-form" id="quick-report"><div class="nova-form-heading"><span class="nova-feature-icon">${ic('message',22)}</span><div><h3>אנחנו מקשיבים.</h3><p>מה הייתם רוצים לשתף?</p></div></div><label for="quick-description" class="sr-only">תיאור ראשוני של המקרה</label><textarea id="quick-description" maxlength="4000" placeholder="אפשר להתחיל ב: מישהו מטריד אותי, פרצו לי לחשבון, אני דואג לילד שלי…"></textarea><div class="nova-draft-meta"><span>${ic('lock',13)} טיוטה במכשיר הזה</span><span id="draftCount">0 / 4,000</span></div><button type="submit" class="nova-button nova-button-primary">ממשיכים לדיווח ${arrow}</button><p class="nova-form-hint">שום דיווח לא נשלח לפני האישור שלכם בטופס הבא.</p><a class="nova-track-link" href="/track">כבר פניתם? מעקב אחר פנייה ${arrow}</a></form>
+    </section>
+    <section class="nova-community-section" data-reveal>
+      <div><span class="nova-overline">יותר בטוח, ביחד</span><h2>מקום להרגיש<br><span>שייכים.</span></h2><p>משאלות קטנות ועד שיחות גדולות. מכירים אנשים, מחליפים רעיונות ולוקחים גם רגע לשחק.</p><div class="nova-hero-actions"><a class="nova-button nova-button-primary" href="/community">לכניסה לקהילה ${arrow}</a><a class="nova-button nova-button-quiet" href="/friends">למציאת חברים ${ic('users',18)}</a></div></div>
+      <div class="nova-community-cards"><a href="/community"><span class="nova-mini-icon">${ic('message',22)}</span><div><b>שיחות שמחברות</b><small>מרחבים לשאלות, שיתוף ותמיכה</small></div>${arrow}</a><a href="/games"><span class="nova-mini-icon">${ic('grid',22)}</span><div><b>פסק זמן. משחקים יחד.</b><small>פותחים חדר ומזמינים חבר</small></div>${arrow}</a><a href="/team-praise"><span class="nova-mini-icon">${ic('heart',22)}</span><div><b>מילה טובה עושה הבדל</b><small>מפרגנים למי שהיה שם בשבילכם</small></div>${arrow}</a></div>
+    </section>
+    <section class="nova-faq-section nova-section" data-reveal><div class="nova-section-heading"><div><span class="nova-overline">טוב לדעת</span><h2>לפני שמתחילים.</h2></div><span class="nova-micro" dir="ltr">A LITTLE MORE CLARITY</span></div><div class="nova-faq">
+      <details><summary>מה זה SMAI Sentinel?<span>+</span></summary><p>SMAI Sentinel היא יוזמה ישראלית עצמאית לבטיחות ברשת. כאן תמצאו כלי דיווח, הכוונה, מדריכים וקהילה לילדים, לבני נוער ולהורים. <a href="/about-smai.html">עוד על היוזמה</a></p></details>
+      <details><summary>צריך להשתמש בשם האמיתי?<span>+</span></summary><p>אפשר להשתמש בשם תצוגה או בכינוי. הפנייה משויכת לחשבון שלכם כדי שתוכלו לעקוב אחריה. כדאי לשתף רק מידע שנחוץ להבנת המקרה.</p></details>
+      <details><summary>איך רואים מה קורה עם הפנייה?<span>+</span></summary><p>לאחר השליחה אפשר לצפות בעדכונים דרך <a href="/my">הפניות שלי</a>, או להשתמש בקוד ב<a href="/track">מעקב פנייה</a>.</p></details>
+      <details><summary>מה עושים אם יש סכנה מיידית?<span>+</span></summary><p>במצב סכנה מיידית פונים למשטרה בטלפון <a href="tel:100">100</a>. SMAI אינה משטרה או שירות חירום, ואין להמתין לתשובה באתר במצב כזה.</p></details>
+    </div></section>
+    <section class="nova-contact" data-reveal><span class="nova-overline">הדבר הבא מתחיל בשיחה</span><h2>בונים רשת<br>שטוב יותר להיות בה.</h2><p>רוצים להצטרף, לשתף פעולה או להציע משהו? יש כאן מקום גם לכם.</p><div class="nova-hero-actions"><a class="nova-button nova-button-light" href="/contact">בואו ניצור קשר ${arrow}</a><a class="nova-button nova-button-quiet" href="/join">הצטרפות לצוות ${ic('users',18)}</a></div><div class="nova-contact-word" aria-hidden="true">SENTINEL</div></section>
+    <div class="nova-motion-control"><label><input type="checkbox" id="homeMotionToggle"> אפקטים ותנועה בגלילה</label><span>הבחירה נשמרת במכשיר שלכם.</span></div>
+  </div>`;
+  const home = app.querySelector('.nova-home');
+  let tutorialCleanup;
+  home.querySelectorAll('[data-open-tutorial]').forEach(button=>button.onclick=async()=>{
+    button.disabled=true;
+    try{const {openTutorial}=await import('./tutorial.js');if(home.isConnected)tutorialCleanup=openTutorial(button);}
+    catch{if(home.isConnected){button.querySelector('small').textContent='ההדרכה לא נטענה. לחצו כדי לנסות שוב.';}}
+    finally{button.disabled=false;}
+  });
+  const media = matchMedia('(prefers-reduced-motion: reduce)');
+  const toggle = home.querySelector('#homeMotionToggle');
   let observer;
-  const toggle=home.querySelector('#homeMotionToggle');
-  const applyMotion=()=>{
+  const applyMotion = () => {
     observer?.disconnect();
-    const enabled=localStorage.getItem('smai_home_motion')!=='off';
-    toggle.checked=enabled;
-    home.dataset.motion=enabled&&!media.matches?'on':'off';
-    home.querySelectorAll('.home-reveal').forEach(el=>el.classList.remove('home-reveal'));
-    if(home.dataset.motion==='on'&&'IntersectionObserver' in window){
-      observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target);}}),{threshold:.08});
-      home.querySelectorAll('.mission-grid,.shortcut-row,.home-bottom,.home-community,.home-contact').forEach(el=>{el.classList.add('home-reveal');observer.observe(el);});
+    const enabled = localStorage.getItem('smai_home_motion') !== 'off';
+    toggle.checked = enabled;
+    home.dataset.motion = enabled && !media.matches ? 'on' : 'off';
+    home.querySelectorAll('[data-reveal]').forEach(el => el.classList.remove('nova-reveal'));
+    if (home.dataset.motion === 'on' && 'IntersectionObserver' in window) {
+      observer = new IntersectionObserver(entries => entries.forEach(entry => {
+        if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.unobserve(entry.target); }
+      }), {threshold: .05});
+      home.querySelectorAll('[data-reveal]').forEach(el => {
+        if (el.getBoundingClientRect().top > innerHeight) { el.classList.add('nova-reveal'); observer.observe(el); }
+      });
     }
   };
-  toggle.onchange=()=>{localStorage.setItem('smai_home_motion',toggle.checked?'on':'off');applyMotion();};
+  toggle.onchange = () => {localStorage.setItem('smai_home_motion', toggle.checked ? 'on' : 'off'); applyMotion();};
   applyMotion();
-  if(sessionStorage.getItem('smai_arrived'))home.querySelector('.sentinel-arrival').remove();
-  else sessionStorage.setItem('smai_arrived','1');
-  media.addEventListener('change',applyMotion);
-  onCleanup?.(()=>{observer?.disconnect();media.removeEventListener('change',applyMotion);});
-  document.getElementById('quick-report').onsubmit = e => {e.preventDefault(); sessionStorage.setItem('smai_report_draft', document.getElementById('quick-description').value); location.hash = '#/report';};
+  const visibility=()=>home.classList.toggle('nova-paused',document.hidden);
+  document.addEventListener('visibilitychange',visibility);visibility();
+  let heroObserver;
+  if('IntersectionObserver' in window){heroObserver=new IntersectionObserver(entries=>home.classList.toggle('nova-out-of-view',!entries[0].isIntersecting));heroObserver.observe(home.querySelector('.nova-hero'));}
+  media.addEventListener('change', applyMotion);
+  onCleanup?.(() => {observer?.disconnect();heroObserver?.disconnect();tutorialCleanup?.();document.removeEventListener('visibilitychange',visibility);media.removeEventListener('change', applyMotion);});
+  home.querySelector('#homeExplore').onclick = e => {e.preventDefault(); home.querySelector('#home-explore').scrollIntoView({behavior: home.dataset.motion === 'on' ? 'smooth' : 'instant'});};
+  const input = home.querySelector('#quick-description');
+  input.value = sessionStorage.getItem('smai_report_draft') || '';
+  const updateDraft = () => {home.querySelector('#draftCount').textContent = `${input.value.length.toLocaleString()} / 4,000`;};
+  input.oninput = () => {sessionStorage.setItem('smai_report_draft', input.value); updateDraft();};
+  updateDraft();
+  home.querySelector('#quick-report').onsubmit = e => {e.preventDefault(); sessionStorage.setItem('smai_report_draft', input.value); location.hash = '#/report';};
 }
